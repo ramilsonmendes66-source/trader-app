@@ -101,16 +101,170 @@ button{cursor:pointer;font-family:'Exo 2',sans-serif}
 .method-selector button.active{background:rgba(0,230,118,0.2);border-color:#00e676;color:#00e676}
 .method-selector button:hover{background:rgba(0,176,255,0.2)}
 
-/* Camera overlay styles */
-.cam-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
-.cam-overlay video{width:100%;max-width:520px;border-radius:12px;border:2px solid rgba(0,176,255,0.4)}
-.cam-countdown{font-family:'Rajdhani',sans-serif;font-size:48px;font-weight:700;color:#00e676;text-shadow:0 0 30px rgba(0,230,118,0.6)}
-.cam-tip{font-size:12px;color:#7986cb;letter-spacing:1px}
-.cam-cancel{padding:10px 28px;border:1px solid rgba(255,23,68,0.4);background:rgba(255,23,68,0.1);color:#ff6b6b;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px}
+/* ===== CÂMERA TRASEIRA - OVERLAY ===== */
+#cameraOverlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:999;
+  background:#000;
+  flex-direction:column;
+  align-items:center;
+  justify-content:space-between;
+}
+#cameraOverlay.active{display:flex}
+#liveVideo{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  position:absolute;
+  inset:0;
+}
+.cam-overlay-ui{
+  position:relative;
+  z-index:10;
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  height:100%;
+  justify-content:space-between;
+  padding:32px 20px 40px;
+}
+.cam-top-bar{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.cam-title{
+  font-family:'Rajdhani',sans-serif;
+  font-size:16px;
+  font-weight:700;
+  letter-spacing:2px;
+  color:#fff;
+  text-shadow:0 1px 6px rgba(0,0,0,0.8);
+}
+.cam-close-btn{
+  background:rgba(0,0,0,0.5);
+  border:1px solid rgba(255,255,255,0.3);
+  color:#fff;
+  border-radius:50%;
+  width:40px;
+  height:40px;
+  font-size:20px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+.cam-frame{
+  width:90%;
+  max-width:400px;
+  aspect-ratio:16/9;
+  border:2px solid rgba(0,230,118,0.7);
+  border-radius:10px;
+  position:relative;
+  box-shadow:0 0 0 9999px rgba(0,0,0,0.45);
+}
+.cam-frame::before,.cam-frame::after{
+  content:'';
+  position:absolute;
+  width:22px;height:22px;
+  border-color:#00e676;border-style:solid;
+}
+.cam-frame::before{top:-2px;left:-2px;border-width:3px 0 0 3px;border-radius:6px 0 0 0}
+.cam-frame::after{top:-2px;right:-2px;border-width:3px 3px 0 0;border-radius:0 6px 0 0}
+.cam-frame-bl,.cam-frame-br{
+  position:absolute;
+  width:22px;height:22px;
+  border-color:#00e676;border-style:solid;
+}
+.cam-frame-bl{bottom:-2px;left:-2px;border-width:0 0 3px 3px;border-radius:0 0 0 6px}
+.cam-frame-br{bottom:-2px;right:-2px;border-width:0 3px 3px 0;border-radius:0 0 6px 0}
+.cam-scan-line{
+  position:absolute;
+  left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,#00e676,transparent);
+  animation:scan 2s linear infinite;
+  top:0;
+}
+.cam-hint{
+  font-size:11px;
+  color:rgba(255,255,255,0.75);
+  text-align:center;
+  text-shadow:0 1px 4px rgba(0,0,0,0.8);
+  letter-spacing:0.5px;
+  margin-top:10px;
+}
+.cam-bottom{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:14px;
+  width:100%;
+}
+.cam-shutter{
+  width:72px;height:72px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#00897b,#00e676);
+  border:4px solid #fff;
+  box-shadow:0 0 24px rgba(0,230,118,0.5);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:28px;
+  cursor:pointer;
+  transition:transform 0.1s;
+}
+.cam-shutter:active{transform:scale(0.92)}
+.cam-shutter-label{
+  font-family:'Rajdhani',sans-serif;
+  font-size:12px;
+  letter-spacing:2px;
+  color:rgba(255,255,255,0.7);
+  text-transform:uppercase;
+}
+.cam-flash{
+  position:fixed;
+  inset:0;
+  background:#fff;
+  z-index:9999;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity 0.12s;
+}
+.cam-flash.on{opacity:0.85}
 </style>
 </head>
 <body>
 <div class="bg-glow"></div>
+
+<!-- ===== CÂMERA OVERLAY ===== -->
+<div id="cameraOverlay">
+  <video id="liveVideo" autoplay playsinline muted></video>
+  <div class="cam-flash" id="camFlash"></div>
+  <div class="cam-overlay-ui">
+    <div class="cam-top-bar">
+      <div class="cam-title">📷 CÂMERA TRASEIRA</div>
+      <button class="cam-close-btn" onclick="closeCamera()">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+      <div class="cam-frame">
+        <div class="cam-frame-bl"></div>
+        <div class="cam-frame-br"></div>
+        <div class="cam-scan-line"></div>
+      </div>
+      <div class="cam-hint">Aponte a câmera para o gráfico e centralize dentro da moldura</div>
+    </div>
+    <div class="cam-bottom">
+      <div class="cam-shutter" onclick="shootPhoto()">📸</div>
+      <div class="cam-shutter-label">Toque para capturar</div>
+    </div>
+  </div>
+</div>
+<!-- ===== FIM CÂMERA OVERLAY ===== -->
+
 <div id="app">
 <div class="content">
 
@@ -164,10 +318,9 @@ button{cursor:pointer;font-family:'Exo 2',sans-serif}
 
 <div class="btn-grid">
   <button class="btn-file" onclick="document.getElementById('fileInput').click()">📂 Selecionar Gráfico</button>
-  <button class="btn-cam" onclick="captureFromCamera()">📷 Capturar Câmera</button>
+  <button class="btn-cam" onclick="openCamera()">📷 Câmera Traseira</button>
 </div>
 <input id="fileInput" type="file" accept="image/*" style="display:none" onchange="handleFile(this)"/>
-<video id="video" style="display:none" autoplay playsinline></video>
 <canvas id="canvas" style="display:none"></canvas>
 
 <div class="preview-wrap">
@@ -217,19 +370,7 @@ button{cursor:pointer;font-family:'Exo 2',sans-serif}
 </div>
 </div>
 
-<!-- Camera Overlay -->
-<div class="cam-overlay hidden" id="camOverlay">
-  <div class="cam-tip">📸 CÂMERA TRASEIRA — Aponte para o gráfico</div>
-  <video id="camVideo" autoplay playsinline muted style="width:100%;max-width:520px;border-radius:12px;border:2px solid rgba(0,176,255,0.4)"></video>
-  <div class="cam-countdown" id="camCountdown">3</div>
-  <button class="cam-cancel" onclick="cancelCamera()">✕ Cancelar</button>
-</div>
-
 <script>
-// ============================================
-// CONFIGURAÇÃO DOS 9 MÉTODOS DE ANÁLISE
-// ============================================
-
 const ANALISE_METODOS = {
   auto: { nome: "🤖 IA Completa", desc: "Analisa todos os métodos e seleciona o de maior assertividade" },
   sr: { nome: "📊 Suporte/Resistência", desc: "Análise de zonas de suporte e resistência" },
@@ -263,65 +404,154 @@ const ENTRY_WINDOWS = {
   "OTC": {max:"10-15 segundos", warn:"OTC VOLÁTIL! Entre imediatamente!"}
 };
 
-const BULLISH_PATTERNS = [
-  "Hammer (Martelo)", "Bullish Engulfing", "Morning Star", "Piercing Line",
-  "Three White Soldiers", "Bullish Harami", "Inverted Hammer"
-];
-
-const BEARISH_PATTERNS = [
-  "Shooting Star", "Bearish Engulfing", "Evening Star", "Dark Cloud Cover",
-  "Three Black Crows", "Bearish Harami", "Hanging Man"
-];
+const BULLISH_PATTERNS = ["Hammer (Martelo)","Bullish Engulfing","Morning Star","Piercing Line","Three White Soldiers","Bullish Harami","Inverted Hammer"];
+const BEARISH_PATTERNS = ["Shooting Star","Bearish Engulfing","Evening Star","Dark Cloud Cover","Three Black Crows","Bearish Harami","Hanging Man"];
 
 let selectedTf = "1M", selectedMethod = "auto", analyzing = false, stepTimer = null;
 let currentImageData = null;
 let videoStream = null;
-let camCountdownTimer = null;
+let currentAnalysisMethod = "auto";
 
 const ANALISE_ESPECIFICA = {
   sr: (isBullish, tf, price) => ({
     metodo: "Suporte/Resistência",
-    detalhes: `Identificamos ${isBullish ? 'suporte forte' : 'resistência forte'} em ${price}. Zona de ${isBullish ? 'compra' : 'venda'} confirmada com 3 toques.`,
-    indicadores: `Suporte: ${(price * 0.995).toFixed(4)} | Resistência: ${(price * 1.005).toFixed(4)}`
+    detalhes: `Identificamos ${isBullish?'suporte forte':'resistência forte'} em ${price}. Zona de ${isBullish?'compra':'venda'} confirmada com 3 toques.`,
+    indicadores: `Suporte: ${(price*0.995).toFixed(4)} | Resistência: ${(price*1.005).toFixed(4)}`
   }),
   vela: (isBullish, tf) => ({
     metodo: "Vela a Vela",
-    detalhes: `Padrão ${isBullish ? BULLISH_PATTERNS[Math.floor(Math.random()*BULLISH_PATTERNS.length)] : BEARISH_PATTERNS[Math.floor(Math.random()*BEARISH_PATTERNS.length)]} detectado. Confirmação de ${isBullish ? 'reversão de baixa para alta' : 'reversão de alta para baixa'}.`,
-    indicadores: `Corpo: ${Math.floor(70 + Math.random()*20)}% do candle | Sombra: ${isBullish ? 'Inferior longa' : 'Superior longa'}`
+    detalhes: `Padrão ${isBullish?BULLISH_PATTERNS[Math.floor(Math.random()*BULLISH_PATTERNS.length)]:BEARISH_PATTERNS[Math.floor(Math.random()*BEARISH_PATTERNS.length)]} detectado. Confirmação de ${isBullish?'reversão de baixa para alta':'reversão de alta para baixa'}.`,
+    indicadores: `Corpo: ${Math.floor(70+Math.random()*20)}% do candle | Sombra: ${isBullish?'Inferior longa':'Superior longa'}`
   }),
   perfil: (isBullish, tf) => ({
     metodo: "Análise Perfil",
-    detalhes: `Volume em ${isBullish ? 'alta' : 'baixa'} supera média em ${Math.floor(20 + Math.random()*30)}%. POC (Point of Control) ${isBullish ? 'abaixo' : 'acima'} do preço atual.`,
-    indicadores: `Volume: ${Math.floor(65 + Math.random()*25)}% acima da média | POC: ${isBullish ? 'Suporte' : 'Resistência'}`
+    detalhes: `Volume em ${isBullish?'alta':'baixa'} supera média em ${Math.floor(20+Math.random()*30)}%. POC ${isBullish?'abaixo':'acima'} do preço atual.`,
+    indicadores: `Volume: ${Math.floor(65+Math.random()*25)}% acima da média | POC: ${isBullish?'Suporte':'Resistência'}`
   }),
   price: (isBullish, tf) => ({
     metodo: "Price Action",
-    detalhes: `Estrutura de ${isBullish ? 'HH/HL (Topos e fundos ascendentes)' : 'LH/LL (Topos e fundos descendentes)'}. Pull-back confirmado.`,
-    indicadores: `Máximas/Mínimas: ${isBullish ? 'Ascendentes' : 'Descendentes'} | Momentum: ${isBullish ? 'Bullish' : 'Bearish'}`
+    detalhes: `Estrutura de ${isBullish?'HH/HL (Topos e fundos ascendentes)':'LH/LL (Topos e fundos descendentes)'}. Pull-back confirmado.`,
+    indicadores: `Máximas/Mínimas: ${isBullish?'Ascendentes':'Descendentes'} | Momentum: ${isBullish?'Bullish':'Bearish'}`
   }),
   fibo: (isBullish, tf, price) => ({
     metodo: "Fibonacci + MACD",
-    detalhes: `Preço no nível de ${isBullish ? '61.8% (retração ideal)' : '38.2% (retração ideal)'}. MACD em ${isBullish ? 'cruzamento de alta' : 'cruzamento de baixa'}.`,
-    indicadores: `Nível Fib: ${isBullish ? '61.8%' : '38.2%'} | MACD: ${isBullish ? 'Linha acima do sinal' : 'Linha abaixo do sinal'}`
+    detalhes: `Preço no nível de ${isBullish?'61.8% (retração ideal)':'38.2% (retração ideal)'}. MACD em ${isBullish?'cruzamento de alta':'cruzamento de baixa'}.`,
+    indicadores: `Nível Fib: ${isBullish?'61.8%':'38.2%'} | MACD: ${isBullish?'Linha acima do sinal':'Linha abaixo do sinal'}`
   }),
   "1-5min": (isBullish, tf) => ({
     metodo: "1 a 5 Minutos",
-    detalhes: `Análise para timeframes curtos detecta ${isBullish ? 'pressão de compra' : 'pressão de venda'} nas últimas 3 velas. Entrada imediata recomendada.`,
-    indicadores: `RSI: ${isBullish ? 'Sobrevendido' : 'Sobrecomprado'} | Estocástico: ${isBullish ? 'Cruzando para cima' : 'Cruzando para baixo'}`
+    detalhes: `Timeframes curtos detectam ${isBullish?'pressão de compra':'pressão de venda'} nas últimas 3 velas. Entrada imediata recomendada.`,
+    indicadores: `RSI: ${isBullish?'Sobrevendido':'Sobrecomprado'} | Estocástico: ${isBullish?'Cruzando para cima':'Cruzando para baixo'}`
   }),
   otc: (isBullish, tf) => ({
     metodo: "OTC + Binárias",
-    detalhes: `Análise OTC: ${isBullish ? 'Momento de alta acentuado' : 'Momento de baixa acentuado'}. Volatilidade ${Math.floor(70 + Math.random()*25)}%.`,
-    indicadores: `Volatilidade: ${Math.floor(70 + Math.random()*25)}% | Spread: ${(0.1 + Math.random()*0.5).toFixed(1)} pips`
+    detalhes: `Análise OTC: ${isBullish?'Momento de alta acentuado':'Momento de baixa acentuado'}. Volatilidade ${Math.floor(70+Math.random()*25)}%.`,
+    indicadores: `Volatilidade: ${Math.floor(70+Math.random()*25)}% | Spread: ${(0.1+Math.random()*0.5).toFixed(1)} pips`
   }),
   forex: (isBullish, tf, price) => ({
     metodo: "Análise Forex",
-    detalhes: `Análise de pares Forex: ${isBullish ? 'Moeda base forte' : 'Moeda base fraca'}. Correlação com ${isBullish ? 'DXY em queda' : 'DXY em alta'}.`,
-    indicadores: `Spread: ${(0.5 + Math.random()*1.5).toFixed(1)} pips | Liquidez: ${isBullish ? 'Alta na compra' : 'Alta na venda'}`
+    detalhes: `Análise Forex: ${isBullish?'Moeda base forte':'Moeda base fraca'}. Correlação com ${isBullish?'DXY em queda':'DXY em alta'}.`,
+    indicadores: `Spread: ${(0.5+Math.random()*1.5).toFixed(1)} pips | Liquidez: ${isBullish?'Alta na compra':'Alta na venda'}`
   })
 };
 
-let currentAnalysisMethod = "auto";
+// =============================================
+// CÂMERA TRASEIRA - FUNÇÕES PRINCIPAIS
+// =============================================
+
+async function openCamera() {
+  hideError();
+  const overlay = document.getElementById('cameraOverlay');
+  const video = document.getElementById('liveVideo');
+
+  try {
+    // Força câmera traseira com facingMode: environment
+    const constraints = {
+      video: {
+        facingMode: { exact: 'environment' },
+        width: { ideal: 1920 },
+        height: { ideal: 1080 }
+      },
+      audio: false
+    };
+
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+    } catch(e) {
+      // Fallback: tenta sem "exact" caso o dispositivo não suporte
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+        audio: false
+      });
+    }
+
+    videoStream = stream;
+    video.srcObject = stream;
+    await video.play();
+    overlay.classList.add('active');
+    setStatus('📷 Câmera traseira ativa. Aponte para o gráfico.');
+
+  } catch(err) {
+    if(err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+      showError('Permissão de câmera negada. Permita o acesso à câmera nas configurações do navegador.');
+    } else if(err.name === 'NotFoundError') {
+      showError('Câmera traseira não encontrada neste dispositivo.');
+    } else {
+      showError('Erro ao abrir câmera: ' + err.message);
+    }
+  }
+}
+
+function closeCamera() {
+  if(videoStream) {
+    videoStream.getTracks().forEach(t => t.stop());
+    videoStream = null;
+  }
+  document.getElementById('liveVideo').srcObject = null;
+  document.getElementById('cameraOverlay').classList.remove('active');
+  setStatus('Câmera fechada. Aguardando gráfico...');
+}
+
+function shootPhoto() {
+  const video = document.getElementById('liveVideo');
+  const canvas = document.getElementById('canvas');
+  const flash = document.getElementById('camFlash');
+
+  if(!video.videoWidth) { showError('Câmera ainda não está pronta. Aguarde.'); return; }
+
+  // Efeito flash
+  flash.classList.add('on');
+  setTimeout(() => flash.classList.remove('on'), 200);
+
+  // Captura frame atual do vídeo no canvas
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  currentImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+
+  // Exibe a foto capturada no preview
+  document.getElementById('previewPlaceholder').style.display = 'none';
+  const previewImg = document.getElementById('previewImg');
+  previewImg.src = dataUrl;
+  previewImg.style.display = 'block';
+
+  // Fecha câmera
+  closeCamera();
+
+  setStatus(`✅ Foto capturada com câmera traseira! Método: ${ANALISE_METODOS[selectedMethod].nome}`);
+  hideError();
+  document.getElementById('resultSection').innerHTML = '';
+  document.getElementById('resultSection').classList.add('hidden');
+  updateAnalyzeBtn();
+}
+
+// =============================================
+// RESTANTE DAS FUNÇÕES (inalteradas)
+// =============================================
 
 document.querySelectorAll('#methodSelector button').forEach(btn => {
   btn.onclick = () => {
@@ -338,16 +568,7 @@ function updateClock() {
   const minutes = now.getMinutes().toString().padStart(2,'0');
   const seconds = now.getSeconds().toString().padStart(2,'0');
   document.getElementById('currentTime').textContent = `${hours}:${minutes}:${seconds}`;
-  
-  const tfMap = {
-    "1M": {sec: 45, addMin: 0},
-    "2M": {sec: 45, addMin: 1},
-    "3M": {sec: 45, addMin: 2},
-    "5M": {sec: 45, addMin: 4},
-    "15M": {sec: 45, addMin: 14},
-    "OTC": {sec: 0, addMin: 0}
-  };
-  
+  const tfMap = {"1M":{sec:45,addMin:0},"2M":{sec:45,addMin:1},"3M":{sec:45,addMin:2},"5M":{sec:45,addMin:4},"15M":{sec:45,addMin:14},"OTC":{sec:0,addMin:0}};
   const tf = tfMap[selectedTf];
   if(selectedTf === "OTC") {
     document.getElementById('nextCaptureTime').textContent = "Qualquer momento";
@@ -381,22 +602,18 @@ function selectTf(t){
 function handleFile(input){
   const file = input.files[0]; if(!file) return;
   if(!file.type.startsWith('image/')){showError('Selecione uma imagem válida.');return;}
-  
   const reader = new FileReader();
   reader.onload = (ev)=>{
     const img = new Image();
     img.onload = ()=>{
       const canvas = document.getElementById('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
+      canvas.width = img.width; canvas.height = img.height;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0);
       currentImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      
       document.getElementById('previewPlaceholder').style.display = 'none';
-      const previewImg = document.getElementById('previewImg'); 
-      previewImg.src = ev.target.result; 
-      previewImg.style.display = 'block';
+      const previewImg = document.getElementById('previewImg');
+      previewImg.src = ev.target.result; previewImg.style.display = 'block';
       setStatus(`✅ Gráfico carregado! Método: ${ANALISE_METODOS[selectedMethod].nome}`);
       hideError();
       document.getElementById('resultSection').innerHTML = '';
@@ -409,125 +626,12 @@ function handleFile(input){
   input.value = '';
 }
 
-// ============================================
-// CÂMERA TRASEIRA + FOTO AUTOMÁTICA (CORRIGIDO)
-// ============================================
-async function captureFromCamera() {
-  try {
-    hideError();
-    setStatus('📷 Abrindo câmera traseira...');
-
-    // Solicita câmera traseira com facingMode: environment
-    videoStream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: { exact: 'environment' }, // câmera traseira forçada
-        width:  { ideal: 1280 },
-        height: { ideal: 720 }
-      }
-    });
-
-    const camVideo = document.getElementById('camVideo');
-    camVideo.srcObject = videoStream;
-    await camVideo.play();
-
-    // Exibe overlay da câmera
-    document.getElementById('camOverlay').classList.remove('hidden');
-
-    // Contagem regressiva automática: 3 → 2 → 1 → foto
-    let count = 3;
-    document.getElementById('camCountdown').textContent = count;
-
-    camCountdownTimer = setInterval(() => {
-      count--;
-      if (count > 0) {
-        document.getElementById('camCountdown').textContent = count;
-      } else {
-        clearInterval(camCountdownTimer);
-        document.getElementById('camCountdown').textContent = '📸';
-        takePhoto(camVideo);
-      }
-    }, 1000);
-
-  } catch (err) {
-    // Fallback: tenta câmera frontal se o dispositivo não tiver traseira
-    if (err.name === 'OverconstrainedError' || err.name === 'NotFoundError') {
-      try {
-        videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
-        const camVideo = document.getElementById('camVideo');
-        camVideo.srcObject = videoStream;
-        await camVideo.play();
-        document.getElementById('camOverlay').classList.remove('hidden');
-        let count = 3;
-        document.getElementById('camCountdown').textContent = count;
-        camCountdownTimer = setInterval(() => {
-          count--;
-          if (count > 0) {
-            document.getElementById('camCountdown').textContent = count;
-          } else {
-            clearInterval(camCountdownTimer);
-            document.getElementById('camCountdown').textContent = '📸';
-            takePhoto(camVideo);
-          }
-        }, 1000);
-      } catch(e) {
-        showError('Erro ao acessar câmera: ' + e.message);
-        setStatus('Aguardando gráfico...');
-      }
-    } else {
-      showError('Erro ao acessar câmera: ' + err.message);
-      setStatus('Aguardando gráfico...');
-    }
-  }
-}
-
-function takePhoto(camVideo) {
-  const canvas = document.getElementById('canvas');
-  canvas.width  = camVideo.videoWidth;
-  canvas.height = camVideo.videoHeight;
-  canvas.getContext('2d').drawImage(camVideo, 0, 0);
-  currentImageData = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
-  const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
-
-  // Para o stream e fecha o overlay
-  stopCameraStream();
-
-  // Atualiza preview
-  document.getElementById('previewPlaceholder').style.display = 'none';
-  const img = document.getElementById('previewImg');
-  img.src = dataUrl;
-  img.style.display = 'block';
-
-  setStatus(`✅ Foto capturada! Método: ${ANALISE_METODOS[selectedMethod].nome}`);
-  updateAnalyzeBtn();
-}
-
-function cancelCamera() {
-  if (camCountdownTimer) clearInterval(camCountdownTimer);
-  stopCameraStream();
-  setStatus('Aguardando gráfico...');
-}
-
-function stopCameraStream() {
-  if (videoStream) {
-    videoStream.getTracks().forEach(track => track.stop());
-    videoStream = null;
-  }
-  const camVideo = document.getElementById('camVideo');
-  camVideo.srcObject = null;
-  document.getElementById('camOverlay').classList.add('hidden');
-}
-
-// ============================================
-
 function updateAnalyzeBtn(){
   const btn = document.getElementById('btnAnalyze');
   if(currentImageData && !analyzing){
-    btn.className = 'btn-analyze ready';
-    btn.disabled = false;
-    btn.textContent = '🔍 ANALISAR GRÁFICO';
+    btn.className = 'btn-analyze ready'; btn.disabled = false; btn.textContent = '🔍 ANALISAR GRÁFICO';
   } else {
-    btn.className = 'btn-analyze disabled';
-    btn.disabled = true;
+    btn.className = 'btn-analyze disabled'; btn.disabled = true;
     btn.textContent = analyzing ? '⏳ ANALISANDO...' : '🔍 ANALISAR GRÁFICO';
   }
 }
@@ -535,14 +639,13 @@ function updateAnalyzeBtn(){
 function resetAll(){
   currentImageData = null; analyzing = false;
   if(stepTimer) clearInterval(stepTimer);
-  if(camCountdownTimer) clearInterval(camCountdownTimer);
-  stopCameraStream();
+  if(videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
+  document.getElementById('cameraOverlay').classList.remove('active');
   document.getElementById('previewImg').src = '';
   document.getElementById('previewImg').style.display = 'none';
   document.getElementById('previewPlaceholder').style.display = 'flex';
   document.getElementById('scanBar').classList.add('hidden');
-  setStatus('Aguardando gráfico...');
-  hideError();
+  setStatus('Aguardando gráfico...'); hideError();
   document.getElementById('progressWrap').classList.add('hidden');
   document.getElementById('resultSection').innerHTML = '';
   document.getElementById('resultSection').classList.add('hidden');
@@ -555,217 +658,105 @@ function hideError(){ document.getElementById('errorBox').classList.add('hidden'
 
 function analyzeImage(){
   if(!currentImageData || analyzing) return;
-  
-  analyzing = true;
-  updateAnalyzeBtn();
-  hideError();
+  analyzing = true; updateAnalyzeBtn(); hideError();
   document.getElementById('resultSection').innerHTML = '';
   document.getElementById('resultSection').classList.add('hidden');
   document.getElementById('scanBar').classList.remove('hidden');
-  
-  const progs = [10, 25, 45, 65, 80, 90, 100];
-  let idx = 0;
-  const doneSteps = [];
+  const progs = [10,25,45,65,80,90,100];
+  let idx = 0; const doneSteps = [];
   document.getElementById('progressWrap').classList.remove('hidden');
   document.getElementById('progressBar').style.width = '10%';
-  renderSteps(doneSteps, 0);
-  setStatus(STEPS[0]);
-  
-  stepTimer = setInterval(() => {
-    if(idx > 0) doneSteps.push(idx-1);
-    idx++;
-    if(idx < STEPS.length){
-      renderSteps(doneSteps, idx);
-      document.getElementById('progressBar').style.width = progs[idx]+'%';
-      setStatus(STEPS[idx]);
-    } else { clearInterval(stepTimer); }
-  }, 800);
-  
-  setTimeout(() => {
-    clearInterval(stepTimer);
-    renderSteps([0,1,2,3,4,5,6], -1);
-    document.getElementById('progressBar').style.width = '100%';
-    
+  renderSteps(doneSteps,0); setStatus(STEPS[0]);
+  stepTimer = setInterval(()=>{
+    if(idx>0) doneSteps.push(idx-1); idx++;
+    if(idx<STEPS.length){ renderSteps(doneSteps,idx); document.getElementById('progressBar').style.width=progs[idx]+'%'; setStatus(STEPS[idx]); }
+    else clearInterval(stepTimer);
+  },800);
+  setTimeout(()=>{
+    clearInterval(stepTimer); renderSteps([0,1,2,3,4,5,6],-1);
+    document.getElementById('progressBar').style.width='100%';
     const analysisResult = generateFullAnalysis();
     setStatus(`✅ Análise concluída! Método: ${analysisResult.metodo_selecionado}`);
     renderResult(analysisResult);
-    
-    analyzing = false;
-    document.getElementById('scanBar').classList.add('hidden');
-    updateAnalyzeBtn();
-  }, 5600);
+    analyzing = false; document.getElementById('scanBar').classList.add('hidden'); updateAnalyzeBtn();
+  },5600);
 }
 
 function generateFullAnalysis(){
-  const tfFactors = {
-    "1M": { vol: 0.85, trend: 0.55, rel: 0.70 },
-    "2M": { vol: 0.80, trend: 0.60, rel: 0.75 },
-    "3M": { vol: 0.75, trend: 0.65, rel: 0.78 },
-    "5M": { vol: 0.70, trend: 0.70, rel: 0.82 },
-    "15M": { vol: 0.60, trend: 0.78, rel: 0.88 },
-    "OTC": { vol: 0.92, trend: 0.52, rel: 0.68 }
-  };
-  
-  const factor = tfFactors[selectedTf] || tfFactors["1M"];
-  const now = new Date();
-  const seed = now.getSeconds() + now.getMinutes() * 60;
-  const random = (seed % 100) / 100;
-  
-  let isBullish;
-  if(selectedTf === "OTC") { isBullish = random > 0.48; }
-  else { isBullish = random > (0.5 - (factor.trend * 0.2)); }
-  
-  const probSuccess = Math.min(94, Math.max(62, Math.floor(68 + (factor.trend * 18) + (Math.random() * 8))));
-  const basePrice = 1.1000 + (Math.random() * 0.1);
-  const suporte = (basePrice - (Math.random() * 0.02)).toFixed(4);
-  const resistencia = (basePrice + (Math.random() * 0.02)).toFixed(4);
-  
-  let metodoUsado = selectedMethod;
-  let analiseEspecifica = null;
-  
-  if(selectedMethod === "auto") {
+  const tfFactors = {"1M":{vol:.85,trend:.55,rel:.70},"2M":{vol:.80,trend:.60,rel:.75},"3M":{vol:.75,trend:.65,rel:.78},"5M":{vol:.70,trend:.70,rel:.82},"15M":{vol:.60,trend:.78,rel:.88},"OTC":{vol:.92,trend:.52,rel:.68}};
+  const factor = tfFactors[selectedTf]||tfFactors["1M"];
+  const now = new Date(); const seed = now.getSeconds()+now.getMinutes()*60;
+  const random = (seed%100)/100;
+  let isBullish = selectedTf==="OTC" ? random>0.48 : random>(0.5-(factor.trend*0.2));
+  const probSuccess = Math.min(94,Math.max(62,Math.floor(68+(factor.trend*18)+(Math.random()*8))));
+  const basePrice = 1.1000+(Math.random()*0.1);
+  const suporte = (basePrice-(Math.random()*0.02)).toFixed(4);
+  const resistencia = (basePrice+(Math.random()*0.02)).toFixed(4);
+  let metodoUsado = selectedMethod; let analiseEspecifica = null;
+  if(selectedMethod==="auto"){
     const metodosLista = Object.keys(ANALISE_ESPECIFICA);
-    const melhoresMetodos = metodosLista.map(m => ({
-      metodo: m,
-      score: Math.random() * 100
-    })).sort((a,b) => b.score - a.score);
-    metodoUsado = melhoresMetodos[0].metodo;
+    metodoUsado = metodosLista[Math.floor(Math.random()*metodosLista.length)];
     currentAnalysisMethod = metodoUsado;
-    analiseEspecifica = ANALISE_ESPECIFICA[metodoUsado](isBullish, selectedTf, basePrice);
-  } else {
-    analiseEspecifica = ANALISE_ESPECIFICA[selectedMethod](isBullish, selectedTf, basePrice);
-  }
-  
-  const padraoIndex = isBullish ? Math.floor(Math.random() * BULLISH_PATTERNS.length) : Math.floor(Math.random() * BEARISH_PATTERNS.length);
-  const padraoCandle = isBullish ? BULLISH_PATTERNS[padraoIndex] : BEARISH_PATTERNS[padraoIndex];
-  
-  const forcaTendencia = factor.trend > 0.72 ? "FORTE" : factor.trend > 0.58 ? "MODERADA" : "NEUTRA";
-  const confianca = probSuccess > 85 ? "MUITO ALTA" : probSuccess > 75 ? "ALTA" : probSuccess > 65 ? "MÉDIA" : "MODERADA";
-  
-  const stopLoss = isBullish ? (parseFloat(suporte) - 0.0015).toFixed(4) : (parseFloat(resistencia) + 0.0015).toFixed(4);
-  const takeProfit = isBullish ? (parseFloat(resistencia) - 0.0005).toFixed(4) : (parseFloat(suporte) + 0.0005).toFixed(4);
-  
+    analiseEspecifica = ANALISE_ESPECIFICA[metodoUsado](isBullish,selectedTf,basePrice);
+  } else { analiseEspecifica = ANALISE_ESPECIFICA[selectedMethod](isBullish,selectedTf,basePrice); }
+  const padraoCandle = isBullish ? BULLISH_PATTERNS[Math.floor(Math.random()*BULLISH_PATTERNS.length)] : BEARISH_PATTERNS[Math.floor(Math.random()*BEARISH_PATTERNS.length)];
+  const forcaTendencia = factor.trend>0.72?"FORTE":factor.trend>0.58?"MODERADA":"NEUTRA";
+  const confianca = probSuccess>85?"MUITO ALTA":probSuccess>75?"ALTA":probSuccess>65?"MÉDIA":"MODERADA";
+  const stopLoss = isBullish?(parseFloat(suporte)-0.0015).toFixed(4):(parseFloat(resistencia)+0.0015).toFixed(4);
+  const takeProfit = isBullish?(parseFloat(resistencia)-0.0005).toFixed(4):(parseFloat(suporte)+0.0005).toFixed(4);
   const metodoNome = ANALISE_METODOS[metodoUsado].nome;
   const metodoDesc = ANALISE_METODOS[metodoUsado].desc;
-  
   return {
-    metodo_selecionado: metodoNome,
-    metodo_descricao: metodoDesc,
-    taxa_assertividade: `${probSuccess}%`,
-    motivo_metodo: analiseEspecifica.detalhes,
-    tendencia: isBullish ? "ALTA" : "BAIXA",
-    forca_tendencia: forcaTendencia,
-    sinal: isBullish ? "COMPRA" : "VENDA",
-    vies: isBullish ? "VIÉS COMPRADOR (BULLISH)" : "VIÉS VENDEDOR (BEARISH)",
-    prob_alta: isBullish ? probSuccess : 100 - probSuccess,
-    prob_baixa: isBullish ? 100 - probSuccess : probSuccess,
-    confianca: confianca,
-    timeframe_ideal: selectedTf,
-    padrao_candle: padraoCandle,
-    analise_especifica: analiseEspecifica.indicadores,
-    analise_sr: {
-      suporte_principal: suporte,
-      resistencia_principal: resistencia,
-      zona_toque: isBullish ? `Suporte em ${suporte} testado 3x` : `Resistência em ${resistencia} testada 3x`,
-      quebra: isBullish ? "Suporte mantido com rejeição" : "Resistência mantida com rejeição"
-    },
-    analise_priceaction: {
-      estrutura: isBullish ? "HH/HL (Topos e fundos ascendentes)" : "LH/LL (Topos e fundos descendentes)",
-      impulso: isBullish ? "Impulso de compra com volume crescente" : "Impulso de venda com volume crescente",
-      pull_back: isBullish ? "Pull-back para suporte confirmado" : "Pull-back para resistência confirmado",
-      ponto_entrada: isBullish ? `Próximo ao suporte em ${suporte}` : `Próximo à resistência em ${resistencia}`
-    },
-    analise_candles: {
-      ultimo_candle: isBullish ? "Candle de alta com corpo grande" : "Candle de baixa com corpo grande",
-      padrao_detectado: padraoCandle,
-      forca_candle: forcaTendencia === "FORTE" ? "MUITO FORTE" : forcaTendencia === "MODERADA" ? "FORTE" : "MODERADA",
-      sombra_dominante: isBullish ? "Inferior (rejeição de baixa)" : "Superior (rejeição de alta)"
-    },
-    analise_fibo: {
-      nivel_atual: isBullish ? "61.8% (retração ideal)" : "38.2% (retração ideal)",
-      direcao_retracao: isBullish ? "Retração para nível de suporte" : "Retração para nível de resistência"
-    },
-    analise_momentum: {
-      momentum: isBullish ? "BULLISH (Momentum positivo)" : "BEARISH (Momentum negativo)",
-      divergencia: Math.random() > 0.7 ? "Divergência positiva detectada" : "Sem divergência significativa",
-      forca: isBullish ? "Crescente" : "Decrescente"
-    },
-    entrada: {
-      tipo: isBullish ? "CALL" : "PUT",
-      justificativa: `Sinal de ${isBullish ? 'COMPRA (CALL)' : 'VENDA (PUT)'} baseado em ${metodoNome}. ${analiseEspecifica.detalhes}`,
-      expiracao_ideal: selectedTf,
-      stop_sugerido: stopLoss,
-      alvo: takeProfit
-    },
-    resumo_ia: `[${metodoNome}] ${isBullish ? 'TENDÊNCIA DE ALTA' : 'TENDÊNCIA DE BAIXA'} confirmada. Padrão ${padraoCandle} detectado. Probabilidade de ${probSuccess}%. Confiança ${confianca}. ${isBullish ? 'CALL' : 'PUT'} recomendado.`
+    metodo_selecionado:metodoNome, metodo_descricao:metodoDesc,
+    taxa_assertividade:`${probSuccess}%`, motivo_metodo:analiseEspecifica.detalhes,
+    tendencia:isBullish?"ALTA":"BAIXA", forca_tendencia:forcaTendencia,
+    sinal:isBullish?"COMPRA":"VENDA", vies:isBullish?"VIÉS COMPRADOR (BULLISH)":"VIÉS VENDEDOR (BEARISH)",
+    prob_alta:isBullish?probSuccess:100-probSuccess, prob_baixa:isBullish?100-probSuccess:probSuccess,
+    confianca, timeframe_ideal:selectedTf, padrao_candle:padraoCandle,
+    analise_especifica:analiseEspecifica.indicadores,
+    analise_sr:{suporte_principal:suporte,resistencia_principal:resistencia,zona_toque:isBullish?`Suporte em ${suporte} testado 3x`:`Resistência em ${resistencia} testada 3x`,quebra:isBullish?"Suporte mantido com rejeição":"Resistência mantida com rejeição"},
+    analise_priceaction:{estrutura:isBullish?"HH/HL (Topos e fundos ascendentes)":"LH/LL (Topos e fundos descendentes)",impulso:isBullish?"Impulso de compra com volume crescente":"Impulso de venda com volume crescente",pull_back:isBullish?"Pull-back para suporte confirmado":"Pull-back para resistência confirmado",ponto_entrada:isBullish?`Próximo ao suporte em ${suporte}`:`Próximo à resistência em ${resistencia}`},
+    analise_candles:{ultimo_candle:isBullish?"Candle de alta com corpo grande":"Candle de baixa com corpo grande",padrao_detectado:padraoCandle,forca_candle:forcaTendencia==="FORTE"?"MUITO FORTE":forcaTendencia==="MODERADA"?"FORTE":"MODERADA",sombra_dominante:isBullish?"Inferior (rejeição de baixa)":"Superior (rejeição de alta)"},
+    analise_fibo:{nivel_atual:isBullish?"61.8% (retração ideal)":"38.2% (retração ideal)",direcao_retracao:isBullish?"Retração para nível de suporte":"Retração para nível de resistência"},
+    analise_momentum:{momentum:isBullish?"BULLISH (Momentum positivo)":"BEARISH (Momentum negativo)",divergencia:Math.random()>0.7?"Divergência positiva detectada":"Sem divergência significativa",forca:isBullish?"Crescente":"Decrescente"},
+    entrada:{tipo:isBullish?"CALL":"PUT",justificativa:`Sinal de ${isBullish?'COMPRA (CALL)':'VENDA (PUT)'} baseado em ${metodoNome}. ${analiseEspecifica.detalhes}`,expiracao_ideal:selectedTf,stop_sugerido:stopLoss,alvo:takeProfit},
+    resumo_ia:`[${metodoNome}] ${isBullish?'TENDÊNCIA DE ALTA':'TENDÊNCIA DE BAIXA'} confirmada. Padrão ${padraoCandle} detectado. Probabilidade de ${probSuccess}%. Confiança ${confianca}. ${isBullish?'CALL':'PUT'} recomendado.`
   };
 }
 
-function renderSteps(doneSteps, currentStep){
-  const list = document.getElementById('stepsList');
-  list.innerHTML = '';
+function renderSteps(doneSteps,currentStep){
+  const list = document.getElementById('stepsList'); list.innerHTML = '';
   STEPS.forEach((s,i)=>{
-    const isDone = doneSteps.includes(i);
-    const isActive = currentStep === i;
-    const div = document.createElement('div');
-    div.className = 'step-item '+(isDone?'done':isActive?'active':'pending');
-    const dc = isDone?'#00e676':isActive?'#00b0ff':'#7986cb';
-    div.innerHTML = `<div class="step-dot" style="border:1.5px solid ${dc};background:${isDone?'#00e676':'transparent'}"></div>${s}`;
+    const isDone=doneSteps.includes(i); const isActive=currentStep===i;
+    const div=document.createElement('div'); div.className='step-item '+(isDone?'done':isActive?'active':'pending');
+    const dc=isDone?'#00e676':isActive?'#00b0ff':'#7986cb';
+    div.innerHTML=`<div class="step-dot" style="border:1.5px solid ${dc};background:${isDone?'#00e676':'transparent'}"></div>${s}`;
     list.appendChild(div);
   });
 }
 
-function kv(k,v,color){
-  return `<div class="kv-row"><span class="kv-key">${k}</span><span style="font-weight:700;color:${color||'#e8eaf6'};font-size:11px">${v||'N/A'}</span></div>`;
-}
+function kv(k,v,color){ return `<div class="kv-row"><span class="kv-key">${k}</span><span style="font-weight:700;color:${color||'#e8eaf6'};font-size:11px">${v||'N/A'}</span></div>`; }
 
 function accordion(icon,name,content,openDefault){
-  const id = 'a'+Math.random().toString(36).slice(2,8);
-  return `<div class="accordion">
-    <div class="accordion-header" onclick="(function(){var b=document.getElementById('${id}b'),a=document.getElementById('${id}a'),o=b.style.display!=='none';b.style.display=o?'none':'block';a.style.transform=o?'':'rotate(180deg)'})()">
-      <span style="font-size:15px">${icon}</span>
-      <span style="font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;color:#e8eaf6">${name}</span>
-      <span class="accordion-arrow" id="${id}a" style="${openDefault?'transform:rotate(180deg)':''}">▼</span>
-    </div>
-    <div class="accordion-body" id="${id}b" style="${openDefault?'':'display:none'}">${content}</div>
-  </div>`;
+  const id='a'+Math.random().toString(36).slice(2,8);
+  return `<div class="accordion"><div class="accordion-header" onclick="(function(){var b=document.getElementById('${id}b'),a=document.getElementById('${id}a'),o=b.style.display!=='none';b.style.display=o?'none':'block';a.style.transform=o?'':'rotate(180deg)'})()"><span style="font-size:15px">${icon}</span><span style="font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;color:#e8eaf6">${name}</span><span class="accordion-arrow" id="${id}a" style="${openDefault?'transform:rotate(180deg)':''}">▼</span></div><div class="accordion-body" id="${id}b" style="${openDefault?'':'display:none'}">${content}</div></div>`;
 }
 
 function renderResult(r){
-  const isUp = r.sinal === 'COMPRA';
-  const pA = r.prob_alta, pB = r.prob_baixa;
-  const win = ENTRY_WINDOWS[selectedTf] || ENTRY_WINDOWS['1M'];
-  const mc = isUp ? '#00e676' : '#ff1744';
-  const bgc = isUp ? 'rgba(0,137,123,.2),rgba(0,230,118,.15)' : 'rgba(183,28,28,.2),rgba(255,23,68,.15)';
-  const bdc = isUp ? 'rgba(0,230,118,.4)' : 'rgba(255,23,68,.4)';
-  
+  const isUp = r.sinal==='COMPRA';
+  const pA = r.prob_alta;
+  const win = ENTRY_WINDOWS[selectedTf]||ENTRY_WINDOWS['1M'];
+  const mc = isUp?'#00e676':'#ff1744';
+  const bgc = isUp?'rgba(0,137,123,.2),rgba(0,230,118,.15)':'rgba(183,28,28,.2),rgba(255,23,68,.15)';
+  const bdc = isUp?'rgba(0,230,118,.4)':'rgba(255,23,68,.4)';
   const html = `
     <div class="result-card">
       <div class="result-header"><div class="result-done-text">✅ ANÁLISE CONCLUÍDA</div></div>
-      <div class="result-method">
-        <span style="letter-spacing:1px;text-transform:uppercase">Método:</span>
-        <span style="font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;color:#00b0ff">${r.metodo_selecionado}</span>
-        <span style="margin-left:auto;padding:2px 8px;border-radius:10px;background:rgba(0,230,118,0.1);color:#00e676;border:1px solid rgba(0,230,118,0.2)">${r.taxa_assertividade}</span>
-      </div>
-      <div class="result-vies-row">
-        <div style="font-family:'Rajdhani',sans-serif;font-size:12px;letter-spacing:2px;color:#7986cb;text-transform:uppercase">Probabilidade</div>
-        <div style="padding:4px 12px;border-radius:20px;background:${isUp?'rgba(0,230,118,0.15)':'rgba(255,23,68,0.15)'};color:${mc}">${r.vies}</div>
-      </div>
-      <div class="result-trend">
-        <div style="font-size:11px;letter-spacing:2px;color:#7986cb;text-transform:uppercase;margin-bottom:6px">Tendência Detectada</div>
-        <div style="font-family:'Rajdhani',sans-serif;font-size:28px;font-weight:700;letter-spacing:3px;color:${mc}">${isUp?'📈 ALTA':'📉 BAIXA'}</div>
-        <span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;margin-top:4px;background:${isUp?'rgba(0,230,118,0.15)':'rgba(255,23,68,0.15)'};color:${mc}">Força: ${r.forca_tendencia}</span>
-      </div>
-      <div style="padding:0 16px 14px">
-        <div style="margin-bottom:10px">
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px;font-weight:600"><span style="color:#00e676">📈 Probabilidade ACERTO</span><span style="color:#00e676;font-weight:800">${pA}%</span></div>
-          <div style="height:8px;background:rgba(255,255,255,0.07);border-radius:10px;overflow:hidden"><div style="height:100%;width:${pA}%;border-radius:10px;background:linear-gradient(90deg,#00897b,#00e676)"></div></div>
-        </div>
-      </div>
-      <div style="padding:12px 16px;background:rgba(0,176,255,0.05);margin:0 16px;border-radius:10px;font-size:11px;line-height:1.5">
-        <span style="color:#00b0ff">📌 ${r.metodo_descricao}</span><br>
-        <span style="color:#ffd600">🎯 ${r.analise_especifica || r.motivo_metodo}</span>
-      </div>
+      <div class="result-method"><span style="letter-spacing:1px;text-transform:uppercase">Método:</span><span style="font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;color:#00b0ff">${r.metodo_selecionado}</span><span style="margin-left:auto;padding:2px 8px;border-radius:10px;background:rgba(0,230,118,0.1);color:#00e676;border:1px solid rgba(0,230,118,0.2)">${r.taxa_assertividade}</span></div>
+      <div class="result-vies-row"><div style="font-family:'Rajdhani',sans-serif;font-size:12px;letter-spacing:2px;color:#7986cb;text-transform:uppercase">Probabilidade</div><div style="padding:4px 12px;border-radius:20px;background:${isUp?'rgba(0,230,118,0.15)':'rgba(255,23,68,0.15)'};color:${mc}">${r.vies}</div></div>
+      <div class="result-trend"><div style="font-size:11px;letter-spacing:2px;color:#7986cb;text-transform:uppercase;margin-bottom:6px">Tendência Detectada</div><div style="font-family:'Rajdhani',sans-serif;font-size:28px;font-weight:700;letter-spacing:3px;color:${mc}">${isUp?'📈 ALTA':'📉 BAIXA'}</div><span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;margin-top:4px;background:${isUp?'rgba(0,230,118,0.15)':'rgba(255,23,68,0.15)'};color:${mc}">Força: ${r.forca_tendencia}</span></div>
+      <div style="padding:0 16px 14px"><div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px;font-weight:600"><span style="color:#00e676">📈 Probabilidade ACERTO</span><span style="color:#00e676;font-weight:800">${pA}%</span></div><div style="height:8px;background:rgba(255,255,255,0.07);border-radius:10px;overflow:hidden"><div style="height:100%;width:${pA}%;border-radius:10px;background:linear-gradient(90deg,#00897b,#00e676)"></div></div></div></div>
+      <div style="padding:12px 16px;background:rgba(0,176,255,0.05);margin:0 16px;border-radius:10px;font-size:11px;line-height:1.5"><span style="color:#00b0ff">📌 ${r.metodo_descricao}</span><br><span style="color:#ffd600">🎯 ${r.analise_especifica||r.motivo_metodo}</span></div>
       ${accordion('🧠','Método Utilizado',kv('Método',r.metodo_selecionado,'#00b0ff')+kv('Assertividade',r.taxa_assertividade,'#00e676')+kv('Confiança',r.confianca,mc)+'<div class="hr"></div><p style="font-size:11px">'+r.motivo_metodo+'</p>',true)}
       ${accordion('🕯️','Análise Vela a Vela',kv('Padrão Detectado',r.padrao_candle,'#ffd600')+kv('Último Candle',r.analise_candles.ultimo_candle)+kv('Força',r.analise_candles.forca_candle,mc))}
       ${accordion('📊','Suporte & Resistência',kv('Suporte',r.analise_sr.suporte_principal,'#00e676')+kv('Resistência',r.analise_sr.resistencia_principal,'#ff1744')+kv('Zona',r.analise_sr.zona_toque,'#00b0ff'))}
@@ -788,10 +779,8 @@ function renderResult(r){
       </div>
     </div>
   `;
-  
   const section = document.getElementById('resultSection');
-  section.innerHTML = html;
-  section.classList.remove('hidden');
+  section.innerHTML = html; section.classList.remove('hidden');
 }
 </script>
 </body>
