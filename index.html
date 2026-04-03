@@ -100,6 +100,13 @@ button{cursor:pointer;font-family:'Exo 2',sans-serif}
 .method-selector button{padding:6px 12px;border-radius:20px;font-size:10px;font-weight:600;background:rgba(0,176,255,0.1);border:1px solid rgba(0,176,255,0.3);color:#7986cb;cursor:pointer;transition:all 0.2s}
 .method-selector button.active{background:rgba(0,230,118,0.2);border-color:#00e676;color:#00e676}
 .method-selector button:hover{background:rgba(0,176,255,0.2)}
+
+/* Camera overlay styles */
+.cam-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.cam-overlay video{width:100%;max-width:520px;border-radius:12px;border:2px solid rgba(0,176,255,0.4)}
+.cam-countdown{font-family:'Rajdhani',sans-serif;font-size:48px;font-weight:700;color:#00e676;text-shadow:0 0 30px rgba(0,230,118,0.6)}
+.cam-tip{font-size:12px;color:#7986cb;letter-spacing:1px}
+.cam-cancel{padding:10px 28px;border:1px solid rgba(255,23,68,0.4);background:rgba(255,23,68,0.1);color:#ff6b6b;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px}
 </style>
 </head>
 <body>
@@ -210,6 +217,14 @@ button{cursor:pointer;font-family:'Exo 2',sans-serif}
 </div>
 </div>
 
+<!-- Camera Overlay -->
+<div class="cam-overlay hidden" id="camOverlay">
+  <div class="cam-tip">📸 CÂMERA TRASEIRA — Aponte para o gráfico</div>
+  <video id="camVideo" autoplay playsinline muted style="width:100%;max-width:520px;border-radius:12px;border:2px solid rgba(0,176,255,0.4)"></video>
+  <div class="cam-countdown" id="camCountdown">3</div>
+  <button class="cam-cancel" onclick="cancelCamera()">✕ Cancelar</button>
+</div>
+
 <script>
 // ============================================
 // CONFIGURAÇÃO DOS 9 MÉTODOS DE ANÁLISE
@@ -248,7 +263,6 @@ const ENTRY_WINDOWS = {
   "OTC": {max:"10-15 segundos", warn:"OTC VOLÁTIL! Entre imediatamente!"}
 };
 
-// Padrões de candlestick reais
 const BULLISH_PATTERNS = [
   "Hammer (Martelo)", "Bullish Engulfing", "Morning Star", "Piercing Line",
   "Three White Soldiers", "Bullish Harami", "Inverted Hammer"
@@ -262,8 +276,8 @@ const BEARISH_PATTERNS = [
 let selectedTf = "1M", selectedMethod = "auto", analyzing = false, stepTimer = null;
 let currentImageData = null;
 let videoStream = null;
+let camCountdownTimer = null;
 
-// Métodos de análise específicos
 const ANALISE_ESPECIFICA = {
   sr: (isBullish, tf, price) => ({
     metodo: "Suporte/Resistência",
@@ -309,7 +323,6 @@ const ANALISE_ESPECIFICA = {
 
 let currentAnalysisMethod = "auto";
 
-// Método selector
 document.querySelectorAll('#methodSelector button').forEach(btn => {
   btn.onclick = () => {
     document.querySelectorAll('#methodSelector button').forEach(b => b.classList.remove('active'));
@@ -396,35 +409,115 @@ function handleFile(input){
   input.value = '';
 }
 
+// ============================================
+// CÂMERA TRASEIRA + FOTO AUTOMÁTICA (CORRIGIDO)
+// ============================================
 async function captureFromCamera() {
   try {
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    
-    video.style.display = 'block';
-    videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
-    video.srcObject = videoStream;
-    await video.play();
-    
-    setTimeout(() => {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      canvas.getContext('2d').drawImage(video, 0, 0);
-      currentImageData = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
-      
-      const dataUrl = canvas.toDataURL('image/jpeg');
-      document.getElementById('previewPlaceholder').style.display = 'none';
-      const img = document.getElementById('previewImg');
-      img.src = dataUrl;
-      img.style.display = 'block';
-      
-      if(videoStream) { videoStream.getTracks().forEach(track => track.stop()); video.style.display = 'none'; }
-      
-      setStatus(`✅ Foto capturada! Método: ${ANALISE_METODOS[selectedMethod].nome}`);
-      updateAnalyzeBtn();
+    hideError();
+    setStatus('📷 Abrindo câmera traseira...');
+
+    // Solicita câmera traseira com facingMode: environment
+    videoStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { exact: 'environment' }, // câmera traseira forçada
+        width:  { ideal: 1280 },
+        height: { ideal: 720 }
+      }
+    });
+
+    const camVideo = document.getElementById('camVideo');
+    camVideo.srcObject = videoStream;
+    await camVideo.play();
+
+    // Exibe overlay da câmera
+    document.getElementById('camOverlay').classList.remove('hidden');
+
+    // Contagem regressiva automática: 3 → 2 → 1 → foto
+    let count = 3;
+    document.getElementById('camCountdown').textContent = count;
+
+    camCountdownTimer = setInterval(() => {
+      count--;
+      if (count > 0) {
+        document.getElementById('camCountdown').textContent = count;
+      } else {
+        clearInterval(camCountdownTimer);
+        document.getElementById('camCountdown').textContent = '📸';
+        takePhoto(camVideo);
+      }
     }, 1000);
-  } catch(err) { showError('Erro ao acessar câmera: ' + err.message); }
+
+  } catch (err) {
+    // Fallback: tenta câmera frontal se o dispositivo não tiver traseira
+    if (err.name === 'OverconstrainedError' || err.name === 'NotFoundError') {
+      try {
+        videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const camVideo = document.getElementById('camVideo');
+        camVideo.srcObject = videoStream;
+        await camVideo.play();
+        document.getElementById('camOverlay').classList.remove('hidden');
+        let count = 3;
+        document.getElementById('camCountdown').textContent = count;
+        camCountdownTimer = setInterval(() => {
+          count--;
+          if (count > 0) {
+            document.getElementById('camCountdown').textContent = count;
+          } else {
+            clearInterval(camCountdownTimer);
+            document.getElementById('camCountdown').textContent = '📸';
+            takePhoto(camVideo);
+          }
+        }, 1000);
+      } catch(e) {
+        showError('Erro ao acessar câmera: ' + e.message);
+        setStatus('Aguardando gráfico...');
+      }
+    } else {
+      showError('Erro ao acessar câmera: ' + err.message);
+      setStatus('Aguardando gráfico...');
+    }
+  }
 }
+
+function takePhoto(camVideo) {
+  const canvas = document.getElementById('canvas');
+  canvas.width  = camVideo.videoWidth;
+  canvas.height = camVideo.videoHeight;
+  canvas.getContext('2d').drawImage(camVideo, 0, 0);
+  currentImageData = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+
+  // Para o stream e fecha o overlay
+  stopCameraStream();
+
+  // Atualiza preview
+  document.getElementById('previewPlaceholder').style.display = 'none';
+  const img = document.getElementById('previewImg');
+  img.src = dataUrl;
+  img.style.display = 'block';
+
+  setStatus(`✅ Foto capturada! Método: ${ANALISE_METODOS[selectedMethod].nome}`);
+  updateAnalyzeBtn();
+}
+
+function cancelCamera() {
+  if (camCountdownTimer) clearInterval(camCountdownTimer);
+  stopCameraStream();
+  setStatus('Aguardando gráfico...');
+}
+
+function stopCameraStream() {
+  if (videoStream) {
+    videoStream.getTracks().forEach(track => track.stop());
+    videoStream = null;
+  }
+  const camVideo = document.getElementById('camVideo');
+  camVideo.srcObject = null;
+  document.getElementById('camOverlay').classList.add('hidden');
+}
+
+// ============================================
 
 function updateAnalyzeBtn(){
   const btn = document.getElementById('btnAnalyze');
@@ -442,6 +535,8 @@ function updateAnalyzeBtn(){
 function resetAll(){
   currentImageData = null; analyzing = false;
   if(stepTimer) clearInterval(stepTimer);
+  if(camCountdownTimer) clearInterval(camCountdownTimer);
+  stopCameraStream();
   document.getElementById('previewImg').src = '';
   document.getElementById('previewImg').style.display = 'none';
   document.getElementById('previewPlaceholder').style.display = 'flex';
@@ -525,12 +620,10 @@ function generateFullAnalysis(){
   const suporte = (basePrice - (Math.random() * 0.02)).toFixed(4);
   const resistencia = (basePrice + (Math.random() * 0.02)).toFixed(4);
   
-  // Determinar método de análise (se for auto, escolhe o melhor)
   let metodoUsado = selectedMethod;
   let analiseEspecifica = null;
   
   if(selectedMethod === "auto") {
-    // IA Completa: avalia todos os métodos e escolhe o com maior assertividade simulada
     const metodosLista = Object.keys(ANALISE_ESPECIFICA);
     const melhoresMetodos = metodosLista.map(m => ({
       metodo: m,
