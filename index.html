@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
-<title>TRADER PHOTO I.A PRO v3 - Visão Computacional Real</title>
+<title>TRADER PHOTO I.A PRO v4 - Visão Computacional Real</title>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -146,7 +146,9 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
 .cam-top-bar{display:flex;width:100%;justify-content:space-between;align-items:center}
 .cam-label{background:rgba(0,0,0,0.5);border:1px solid rgba(0,230,118,0.4);border-radius:8px;padding:6px 12px;font-family:'Rajdhani',sans-serif;font-size:11px;color:var(--green);letter-spacing:1.5px}
 .cam-close{width:40px;height:40px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.3);border-radius:50%;color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.cam-frame{width:96%;max-width:900px;aspect-ratio:16/9;border:2px solid rgba(0,230,118,.75);border-radius:8px;position:relative}
+.cam-frame{width:98%;max-width:1200px;aspect-ratio:16/9;border:2px solid rgba(0,230,118,.75);border-radius:8px;position:relative;flex:1;max-height:calc(100vh - 160px)}
+.cam-frame-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Rajdhani',sans-serif;font-size:12px;color:rgba(0,230,118,0.5);letter-spacing:2px;text-align:center;pointer-events:none}
+.cam-distortion-info{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(0,176,255,0.7);text-align:center;padding:4px 0}
 .cam-scanline-h{position:absolute;top:0;bottom:0;width:1.5px;background:linear-gradient(180deg,transparent,var(--green),transparent);animation:scan-h 2.5s linear infinite;left:0}
 .cam-scanline-v{position:absolute;left:0;right:0;height:1.5px;background:linear-gradient(90deg,transparent,var(--green),transparent);animation:scan-v 3s linear infinite;top:0}
 .cam-corners::before,.cam-corners::after{content:'';position:absolute;width:18px;height:18px;border-color:var(--cyan);border-style:solid}
@@ -197,18 +199,21 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
   <div class="cam-flash" id="camFlash"></div>
   <div class="cam-ui">
     <div class="cam-top-bar">
-      <div class="cam-label" id="camLabel">📷 MODO HORIZONTAL</div>
+      <div class="cam-label" id="camLabel">📷 MODO TELA CHEIA</div>
       <div class="cam-close" onclick="closeCamera()">✕</div>
     </div>
-    <div class="cam-frame cam-corners">
+    <!-- Frame ocupa toda área central deixando espaço para os botões -->
+    <div class="cam-frame cam-corners" id="camFrame">
       <div class="cam-scanline-h"></div>
       <div class="cam-scanline-v"></div>
+      <div class="cam-frame-label">APONTE PARA A TELA INTEIRA</div>
     </div>
     <div class="cam-bottom-bar">
       <div class="cam-mode-toggle" onclick="toggleCamFacing()">🔄 Câmera</div>
       <div class="cam-shutter" onclick="shootPhoto()">📸</div>
-      <div class="cam-mode-toggle" onclick="toggleCamMode()">⛶ Modo</div>
+      <div class="cam-mode-toggle" onclick="toggleDistortion()">🔲 Distorção</div>
     </div>
+    <div class="cam-distortion-info" id="camDistInfo">🔧 Correção: <span id="distLabel">AUTO</span></div>
   </div>
 </div>
 
@@ -222,7 +227,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
         <div class="logo-tag">Visão Computacional Real • 14 Métodos • 9 Modos</div>
       </div>
     </div>
-    <div class="pro-badge">PRO v3</div>
+    <div class="pro-badge">PRO v4</div>
   </div>
   <div class="header-live">
     <div class="live-dot"></div>
@@ -396,7 +401,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
 </div>
 
 <div id="resultSection"></div>
-<div class="footer-note">TRADER PHOTO I.A PRO v3 • Visão Computacional Real • 14 Métodos • 9 Modos API • Prompts Especializados por Método</div>
+<div class="footer-note">TRADER PHOTO I.A PRO v4 • Visão Computacional Real • 14 Métodos • 9 Modos API • Correção Perspectiva Automática</div>
 </div></div>
 
 <script>
@@ -724,44 +729,154 @@ function setMode(mode) {
 }
 
 // ==================== CÂMERA ====================
+let distortionMode = 'auto'; // 'auto', 'barrel', 'none'
+
 async function openCamera() {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:camFacing,width:{ideal:1920},height:{ideal:1080}}});
+    // Solicita resolução máxima para melhor qualidade
+    const constraints = {
+      video: {
+        facingMode: camFacing,
+        width: { ideal: 3840, min: 1280 },
+        height: { ideal: 2160, min: 720 },
+        aspectRatio: { ideal: 16/9 }
+      }
+    };
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
     videoStream = stream;
-    document.getElementById('liveVid').srcObject = stream;
-    await document.getElementById('liveVid').play();
+    const vid = document.getElementById('liveVid');
+    vid.srcObject = stream;
+    await vid.play();
     document.getElementById('camOverlay').classList.add('on');
     updateCamLabel();
-  } catch(e) { showErr('Erro câmera: ' + e.message); }
+  } catch(e) {
+    // Fallback com constraints menores
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:camFacing,width:{ideal:1920},height:{ideal:1080}}});
+      videoStream = stream;
+      document.getElementById('liveVid').srcObject = stream;
+      await document.getElementById('liveVid').play();
+      document.getElementById('camOverlay').classList.add('on');
+      updateCamLabel();
+    } catch(e2) { showErr('Erro câmera: ' + e2.message); }
+  }
 }
 function toggleCamFacing() {
   if(videoStream) videoStream.getTracks().forEach(t => t.stop());
   camFacing = camFacing === 'environment' ? 'user' : 'environment';
   openCamera();
 }
+function toggleDistortion() {
+  const modes = ['auto', 'barrel', 'none'];
+  const idx = modes.indexOf(distortionMode);
+  distortionMode = modes[(idx + 1) % modes.length];
+  const labels = { auto:'AUTO (Recomendado)', barrel:'MÁXIMO', none:'DESLIGADO' };
+  document.getElementById('distLabel').textContent = labels[distortionMode];
+}
 function toggleCamMode() { camMode = camMode === 'wide' ? 'square' : 'wide'; updateCamLabel(); }
 function updateCamLabel() {
   const facing = camFacing === 'environment' ? 'TRASEIRA' : 'FRONTAL';
-  document.getElementById('camLabel').textContent = `📷 ${facing} • ${camMode==='wide'?'WIDE 16:9':'QUADRADO'}`;
+  document.getElementById('camLabel').textContent = `📷 ${facing} • TELA CHEIA`;
 }
 function closeCamera() {
   if(videoStream) videoStream.getTracks().forEach(t => t.stop());
   document.getElementById('camOverlay').classList.remove('on');
 }
+
+// ==================== CORREÇÃO DE DISTORÇÃO BARREL (MONITOR CURVO/OVAL) ====================
+function applyBarrelCorrection(srcCanvas, strength) {
+  // Correção de distorção barrel: transforma imagem oval em reta
+  // strength: 0.0 = sem correção, positivo = correção barrel, negativo = pincushion
+  const W = srcCanvas.width, H = srcCanvas.height;
+  const outCanvas = document.getElementById('cvRotate');
+  outCanvas.width = W; outCanvas.height = H;
+  const srcCtx = srcCanvas.getContext('2d');
+  const outCtx = outCanvas.getContext('2d');
+  const srcData = srcCtx.getImageData(0, 0, W, H);
+  const outData = outCtx.createImageData(W, H);
+  const src = srcData.data;
+  const out = outData.data;
+
+  const cx = W / 2, cy = H / 2;
+  const maxR = Math.sqrt(cx*cx + cy*cy);
+  const k1 = strength; // coeficiente de distorção barrel
+
+  for(let y = 0; y < H; y++) {
+    for(let x = 0; x < W; x++) {
+      // Normaliza coordenadas para [-1, 1]
+      const nx = (x - cx) / maxR;
+      const ny = (y - cy) / maxR;
+      const r2 = nx*nx + ny*ny;
+      // Modelo de distorção Brown-Conrady simplificado
+      const factor = 1 + k1 * r2;
+      // Coordenada de origem (mapeamento inverso)
+      const srcX = cx + (nx * factor) * maxR;
+      const srcY = cy + (ny * factor) * maxR;
+
+      // Bilinear interpolation
+      const x0 = Math.floor(srcX), y0 = Math.floor(srcY);
+      const x1 = x0 + 1, y1 = y0 + 1;
+      const fx = srcX - x0, fy = srcY - y0;
+
+      const outIdx = (y * W + x) * 4;
+      if(x0 >= 0 && x1 < W && y0 >= 0 && y1 < H) {
+        for(let c = 0; c < 3; c++) {
+          const tl = src[(y0*W+x0)*4+c];
+          const tr = src[(y0*W+x1)*4+c];
+          const bl = src[(y1*W+x0)*4+c];
+          const br = src[(y1*W+x1)*4+c];
+          out[outIdx+c] = Math.round(
+            tl*(1-fx)*(1-fy) + tr*fx*(1-fy) +
+            bl*(1-fx)*fy    + br*fx*fy
+          );
+        }
+        out[outIdx+3] = 255;
+      } else if(x0 >= 0 && x0 < W && y0 >= 0 && y0 < H) {
+        for(let c = 0; c < 3; c++) out[outIdx+c] = src[(y0*W+x0)*4+c];
+        out[outIdx+3] = 255;
+      } else {
+        out[outIdx] = 10; out[outIdx+1] = 10; out[outIdx+2] = 15; out[outIdx+3] = 255;
+      }
+    }
+  }
+  outCtx.putImageData(outData, 0, 0);
+  return outCanvas;
+}
+
 function shootPhoto() {
   const video = document.getElementById('liveVid');
   const canvas = document.getElementById('cv');
-  canvas.width = video.videoWidth || 1280;
-  canvas.height = video.videoHeight || 720;
-  canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  // Captura resolução COMPLETA do vídeo (tela cheia)
+  const vW = video.videoWidth || 1920;
+  const vH = video.videoHeight || 1080;
+  canvas.width = vW;
+  canvas.height = vH;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, vW, vH);
+
+  // Flash
   const flash = document.getElementById('camFlash');
   flash.classList.add('on');
   setTimeout(() => flash.classList.remove('on'), 150);
-  const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+
+  // Aplica correção de distorção barrel (monitores curvos causam efeito oval)
+  let finalCanvas = canvas;
+  if(distortionMode !== 'none') {
+    // strength negativo = corrige barrel (imagem que ficou "oval"/"inflada" fica reta)
+    const strength = distortionMode === 'barrel' ? -0.22 : -0.14;
+    finalCanvas = applyBarrelCorrection(canvas, strength);
+  }
+
+  const dataUrl = finalCanvas.toDataURL('image/jpeg', 0.96);
   imgOrigB64 = dataUrl.split(',')[1];
   imgB64 = imgOrigB64; imgEnhancedB64 = null; isEnhanced = false;
   imgRotation = 0; imgFlippedH = false;
-  if(canvas.width > canvas.height) { imgAspectWide=true; document.getElementById('previewBox').className='preview-box landscape-mode'; }
+
+  // Sempre landscape para gráficos
+  imgAspectWide = true;
+  document.getElementById('previewBox').className='preview-box landscape-mode';
+
   document.getElementById('previewImg').style.transform = 'none';
   document.getElementById('previewImg').style.filter = 'none';
   document.getElementById('previewImg').src = dataUrl;
@@ -774,7 +889,8 @@ function shootPhoto() {
   document.getElementById('enhanceInfo').className = 'enhance-info';
   updateRotateInfo();
   closeCamera();
-  setStatus('✅ Foto capturada! Clique em 🔬 MELHORAR IMAGEM para maior precisão.');
+  const corrMsg = distortionMode !== 'none' ? ' ✅ Correção barrel aplicada (imagem reta).' : '';
+  setStatus('✅ Foto capturada!' + corrMsg + ' Clique em 🔬 MELHORAR IMAGEM para maior precisão.');
   updateAnalyzeButton();
 }
 
@@ -928,7 +1044,8 @@ function rebakeImage() {
   const src = `data:image/jpeg;base64,${base}`;
   const tmpImg = new Image();
   tmpImg.onload = () => {
-    const canvas = document.getElementById('cvRotate');
+    // Usa cvEnhance como canvas auxiliar para rotação (cvRotate é usado pelo barrel correction)
+    const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     const rad = imgRotation * Math.PI / 180;
     const sin = Math.abs(Math.sin(rad)), cos = Math.abs(Math.cos(rad));
