@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
-<title>TRADER PHOTO I.A PRO v6 - IA Adaptativa</title>
+<title>TRADER PHOTO I.A PRO v7 - IA Adaptativa</title>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -275,7 +275,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
         <div class="logo-tag">IA Adaptativa • 16 Métodos • 9 Modos • Aprendizagem</div>
       </div>
     </div>
-    <div class="pro-badge">PRO v6</div>
+    <div class="pro-badge">PRO v7</div>
   </div>
   <div class="header-live">
     <div class="live-dot"></div>
@@ -492,7 +492,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
 </div>
 
 <div id="resultSection"></div>
-<div class="footer-note">TRADER PHOTO I.A PRO v6 • IA Adaptativa • 16 Métodos • 9 Modos API • Aprendizagem com Memória Extensa</div>
+<div class="footer-note">TRADER PHOTO I.A PRO v7 • IA Adaptativa • 16 Métodos • 9 Modos API • Confluência Mínima 3 • Memória 2000 Ops</div>
 </div></div>
 
 <script>
@@ -747,7 +747,7 @@ try {
 
 // ==================== INIT ====================
 window.onload = function() {
-  loadIaMemory();
+  iaLoad();
   buildTfButtons();
   buildMethodButtons();
   updateClock();
@@ -1510,220 +1510,234 @@ function safeParseJSON(str) {
   catch(e) { return {sinal:'COMPRA',confianca:'BAIXA',probabilidade:55,resumo:'Falha ao interpretar resposta da IA. Tente novamente.',tendencia:'LATERAL'}; }
 }
 
-// ==================== IA APRENDIZAGEM ADAPTATIVA ====================
+// ============================================================
+// IA APRENDIZAGEM ADAPTATIVA — ENGINE COMPLETO v7
+// ============================================================
 let iaLearningOn = false;
-let lastResult = null;
-const IA_STORAGE_KEY = 'trader_ia_memory_v6';
-const IA_MAX_OPS = 2000; // memória extensa
+let lastResult   = null;   // guarda o último sinal gerado
+let feedbackDone = false;  // evita duplo registro
+const IA_KEY  = 'trader_ia_v7';
+const IA_MAX  = 2000;
 
-// Estrutura da memória
-let iaMemory = {
-  ops: [],          // array de {ts, metodo, tf, sinal, prob, resultado:'win'|'loss'}
-  methodStats: {},  // { [metodo]: { wins:0, losses:0 } }
-  tfStats: {},      // { [tf]: { wins:0, losses:0 } }
-  signalStats: {},  // { [metodo+'_'+sinal]: { wins:0, losses:0 } }
-  totalWins: 0,
-  totalLosses: 0
+let MEM = {
+  ops:[],            // {ts,metodo,tf,sinal,prob,resultado}
+  mStats:{},         // {metodo:{w,l}}
+  tfStats:{},        // {tf:{w,l}}
+  skStats:{},        // {metodo_sinal:{w,l}}
+  confStats:{},      // {metodo_confianca:{w,l}}
+  wins:0, losses:0
 };
 
-function loadIaMemory() {
-  try {
-    const raw = localStorage.getItem(IA_STORAGE_KEY);
-    if(raw) {
-      const parsed = JSON.parse(raw);
-      if(parsed && parsed.ops) iaMemory = parsed;
-    }
-  } catch(e) {}
+/* ---- persistência ---- */
+function iaSave(){
+  try{
+    if(MEM.ops.length>IA_MAX) MEM.ops=MEM.ops.slice(-IA_MAX);
+    localStorage.setItem(IA_KEY,JSON.stringify(MEM));
+  }catch(e){}
+}
+function iaLoad(){
+  try{
+    const r=localStorage.getItem(IA_KEY);
+    if(r){ const p=JSON.parse(r); if(p&&p.ops) MEM=p; }
+  }catch(e){}
 }
 
-function saveIaMemory() {
-  try {
-    // Limita a IA_MAX_OPS operações (remove as mais antigas)
-    if(iaMemory.ops.length > IA_MAX_OPS) {
-      iaMemory.ops = iaMemory.ops.slice(-IA_MAX_OPS);
-    }
-    localStorage.setItem(IA_STORAGE_KEY, JSON.stringify(iaMemory));
-  } catch(e) {}
+/* ---- toggle painel ---- */
+function toggleIaLearn(){
+  const b=document.getElementById('iaLearnBody');
+  const a=document.getElementById('iaLearnArrow');
+  const open=b.classList.toggle('open');
+  a.textContent=open?'▲':'▼';
+  if(open) iaRenderPanel();
 }
 
-function toggleIaLearn() {
-  const body = document.getElementById('iaLearnBody');
-  const arrow = document.getElementById('iaLearnArrow');
-  const open = body.classList.toggle('open');
-  arrow.textContent = open ? '▲' : '▼';
-  if(open) renderIaPanel();
-}
-
-function toggleIaLearning() {
-  iaLearningOn = !iaLearningOn;
-  const btn = document.getElementById('iaToggleBtn');
-  const dot = document.getElementById('iaStatusDot');
-  const txt = document.getElementById('iaStatusTxt');
-  if(iaLearningOn) {
-    btn.textContent = '🧠 DESLIGAR IA';
-    btn.className = 'ia-toggle-btn on';
-    dot.className = 'ia-status-dot active';
-    txt.textContent = `IA ativa! Analise e registre resultados para aprender.`;
-  } else {
-    btn.textContent = '🧠 LIGAR IA';
-    btn.className = 'ia-toggle-btn off';
-    dot.className = 'ia-status-dot';
-    txt.textContent = 'IA desligada — ligue para iniciar aprendizagem';
+/* ---- liga/desliga IA ---- */
+function toggleIaLearning(){
+  iaLearningOn=!iaLearningOn;
+  const btn=document.getElementById('iaToggleBtn');
+  const dot=document.getElementById('iaStatusDot');
+  const txt=document.getElementById('iaStatusTxt');
+  if(iaLearningOn){
+    btn.textContent='🧠 DESLIGAR IA'; btn.className='ia-toggle-btn on';
+    dot.className='ia-status-dot active';
+    txt.textContent='IA ATIVA — registre cada resultado para ela aprender!';
+  }else{
+    btn.textContent='🧠 LIGAR IA'; btn.className='ia-toggle-btn off';
+    dot.className='ia-status-dot';
+    txt.textContent='IA desligada — ligue para iniciar aprendizagem';
   }
-  renderIaPanel();
+  iaRenderPanel();
 }
 
-function registrarResultado(resultado) {
-  if(!lastResult) return;
-  const op = {
-    ts: Date.now(),
-    metodo: lastResult.metodo,
-    tf: lastResult.tf,
-    sinal: lastResult.sinal,
-    prob: lastResult.prob,
-    resultado
+/* ---- registrar resultado (chamado pelos botões GANHOU / ERROU) ---- */
+function registrarResultado(res){
+  // Aceita mesmo sem lastResult — se o usuário clicar após análise
+  if(feedbackDone){ iaShowMsg('⚠️ Resultado já registrado para esta análise.'); return; }
+  if(!lastResult){ iaShowMsg('⚠️ Faça uma análise antes de registrar.'); return; }
+
+  const op={
+    ts:Date.now(), metodo:lastResult.metodo, tf:lastResult.tf,
+    sinal:lastResult.sinal, prob:lastResult.prob,
+    confianca:lastResult.confianca||'MEDIA', resultado:res
   };
 
-  // Registra nos stats
-  const m = op.metodo;
-  if(!iaMemory.methodStats[m]) iaMemory.methodStats[m] = { wins:0, losses:0 };
-  if(!iaMemory.tfStats[op.tf]) iaMemory.tfStats[op.tf] = { wins:0, losses:0 };
-  const sk = m + '_' + op.sinal;
-  if(!iaMemory.signalStats[sk]) iaMemory.signalStats[sk] = { wins:0, losses:0 };
+  // contadores por método
+  if(!MEM.mStats[op.metodo]) MEM.mStats[op.metodo]={w:0,l:0};
+  MEM.mStats[op.metodo][res==='win'?'w':'l']++;
+  // por tf
+  if(!MEM.tfStats[op.tf]) MEM.tfStats[op.tf]={w:0,l:0};
+  MEM.tfStats[op.tf][res==='win'?'w':'l']++;
+  // por método+sinal
+  const sk=op.metodo+'§'+op.sinal;
+  if(!MEM.skStats[sk]) MEM.skStats[sk]={w:0,l:0};
+  MEM.skStats[sk][res==='win'?'w':'l']++;
+  // por método+confiança
+  const ck=op.metodo+'§'+op.confianca;
+  if(!MEM.confStats[ck]) MEM.confStats[ck]={w:0,l:0};
+  MEM.confStats[ck][res==='win'?'w':'l']++;
+  // totais
+  res==='win' ? MEM.wins++ : MEM.losses++;
+  MEM.ops.push(op);
+  iaSave();
+  feedbackDone=true;
 
-  if(resultado === 'win') {
-    iaMemory.methodStats[m].wins++;
-    iaMemory.tfStats[op.tf].wins++;
-    iaMemory.signalStats[sk].wins++;
-    iaMemory.totalWins++;
-  } else {
-    iaMemory.methodStats[m].losses++;
-    iaMemory.tfStats[op.tf].losses++;
-    iaMemory.signalStats[sk].losses++;
-    iaMemory.totalLosses++;
-  }
-  iaMemory.ops.push(op);
-  saveIaMemory();
-  lastResult = null;
+  // feedback visual
+  const msg=res==='win'?'✅ GANHO registrado! IA aprendendo...':'❌ LOSS registrado! IA ajustando...';
+  iaShowMsg(msg);
 
-  // Desabilitar botões após registro
-  document.getElementById('btnGanhou').disabled = true;
-  document.getElementById('btnErrou').disabled = true;
+  // atualiza botões — desabilita os do painel fixo
+  iaSetBtns(false);
 
-  // Feedback visual
-  const msg = resultado === 'win' ? '✅ Ganho registrado! IA aprendendo...' : '❌ Loss registrado! IA ajustando...';
-  document.getElementById('iaAdaptMsg').textContent = msg;
-  setTimeout(() => { document.getElementById('iaAdaptMsg').textContent = ''; }, 3000);
+  // desabilita botões dentro do result-card dinamicamente
+  document.querySelectorAll('.res-ganhou,.res-errou').forEach(b=>b.disabled=true);
 
-  renderIaPanel();
+  iaRenderPanel();
 }
 
-function getMethodWinRate(m) {
-  const s = iaMemory.methodStats[m];
-  if(!s) return null;
-  const total = s.wins + s.losses;
-  if(total === 0) return null;
-  return { rate: s.wins / total, wins: s.wins, losses: s.losses, total };
+function iaShowMsg(msg){
+  const el=document.getElementById('iaAdaptMsg');
+  if(el){ el.textContent=msg; setTimeout(()=>{el.textContent='';},3500); }
 }
 
-function getBestMethod() {
-  let best = null, bestRate = -1;
-  for(const [m, s] of Object.entries(iaMemory.methodStats)) {
-    const total = s.wins + s.losses;
-    if(total < 3) continue; // mínimo 3 ops para considerar
-    const rate = s.wins / total;
-    if(rate > bestRate) { bestRate = rate; best = m; }
-  }
-  return best;
+function iaSetBtns(enabled){
+  const g=document.getElementById('btnGanhou');
+  const e=document.getElementById('btnErrou');
+  if(g) g.disabled=!enabled;
+  if(e) e.disabled=!enabled;
 }
 
-// Adapta o sinal baseado no histórico — se método tem > 60% de loss num sinal, inverte
-function iaAdaptSignal(r) {
-  const m = r.metodo_usado ? selMethod : selMethod;
-  const sk = m + '_' + r.sinal;
-  const stats = iaMemory.signalStats[sk];
-  if(!stats) return { adjusted: false };
-  const total = stats.wins + stats.losses;
-  if(total < 5) return { adjusted: false }; // precisa de ao menos 5 amostras
-  const lossRate = stats.losses / total;
-  if(lossRate > 0.65) {
-    // Mais de 65% de loss nesse sinal+método → inverte
-    const newSinal = r.sinal === 'COMPRA' ? 'VENDA' : 'COMPRA';
-    return {
-      adjusted: true,
-      sinal: newSinal,
-      reason: `${Math.round(lossRate*100)}% loss histórico → invertendo para ${newSinal}`
-    };
+/* ---- adaptação de sinal ---- */
+function iaAdaptSignal(r){
+  if(!iaLearningOn) return {adjusted:false};
+  const sk=selMethod+'§'+r.sinal;
+  const s=MEM.skStats[sk];
+  if(!s) return {adjusted:false};
+  const tot=s.w+s.l;
+  if(tot<5) return {adjusted:false};
+  const lossRate=s.l/tot;
+  if(lossRate>0.65){
+    const novo=r.sinal==='COMPRA'?'VENDA':'COMPRA';
+    return {adjusted:true,sinal:novo,reason:`${Math.round(lossRate*100)}% loss → inverteu para ${novo}`};
   }
-  return { adjusted: false };
+  return {adjusted:false};
 }
 
-function renderIaPanel() {
-  const total = iaMemory.totalWins + iaMemory.totalLosses;
-  const winRate = total > 0 ? Math.round((iaMemory.totalWins / total) * 100) : null;
-  const bestMethod = getBestMethod();
+/* ---- confluência mínima (3) ---- */
+function iaConfluenciaOk(r){
+  // Conta quantos indicadores convergem
+  let score=0;
+  const prob=r.probabilidade||0;
+  if(prob>=70) score++;
+  if(prob>=78) score++;
+  if(r.confianca==='ALTA') score++;
+  if(r.tendencia && r.tendencia!=='LATERAL') score++;
+  if(r.padrao && r.padrao.length>2) score++;
+  return score; // retorna o score (>=3 = suficiente)
+}
 
-  document.getElementById('iaTotalOps').textContent = total;
-  document.getElementById('iaWinRate').textContent = winRate !== null ? winRate + '%' : '—';
-  document.getElementById('iaBestMethod').textContent = bestMethod ? (METODOS[bestMethod]?.replace(/[^a-zA-Z ]/g,'').trim().substring(0,10) || bestMethod) : '—';
+/* ---- painel ---- */
+function iaRenderPanel(){
+  const tot=MEM.wins+MEM.losses;
+  const wr=tot>0?Math.round((MEM.wins/tot)*100):null;
 
-  // Ranking de métodos
-  const rankEl = document.getElementById('iaMethodRanking');
-  const entries = Object.entries(iaMemory.methodStats)
-    .map(([m, s]) => ({ m, wins: s.wins, losses: s.losses, total: s.wins+s.losses, rate: s.wins/(s.wins+s.losses) }))
-    .filter(e => e.total >= 1)
-    .sort((a,b) => b.rate - a.rate)
-    .slice(0, 8);
-
-  if(entries.length === 0) {
-    rankEl.innerHTML = '<div style="font-size:10px;color:var(--muted2);text-align:center;padding:6px">Sem dados ainda. Analise gráficos e registre resultados!</div>';
-  } else {
-    rankEl.innerHTML = entries.map(e => `
-      <div class="ia-rank-item">
-        <span style="font-size:9px;color:var(--muted2);min-width:80px">${(METODOS[e.m]||e.m).substring(0,14)}</span>
-        <div class="ia-rank-bar"><div class="ia-rank-fill" style="width:${Math.round(e.rate*100)}%"></div></div>
-        <span class="ia-rank-pct">${Math.round(e.rate*100)}%</span>
-        <span style="font-size:8px;color:var(--muted2)">(${e.wins}W/${e.losses}L)</span>
-      </div>`).join('');
+  // melhor método
+  let bestM=null, bestR=-1;
+  for(const [m,s] of Object.entries(MEM.mStats)){
+    const t=s.w+s.l; if(t<3) continue;
+    const r=s.w/t; if(r>bestR){bestR=r;bestM=m;}
   }
 
-  // Log de operações (últimas 30)
-  const logEl = document.getElementById('iaLog');
-  const recent = [...iaMemory.ops].reverse().slice(0, 30);
-  if(recent.length === 0) {
-    logEl.innerHTML = '<div style="font-size:10px;color:var(--muted2);text-align:center;padding:8px">Nenhuma operação registrada ainda.</div>';
-  } else {
-    logEl.innerHTML = recent.map(op => {
-      const d = new Date(op.ts);
-      const t = `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
-      const cls = op.resultado === 'win' ? 'ia-log-win' : 'ia-log-loss';
-      const icon = op.resultado === 'win' ? '✅' : '❌';
-      return `<div class="ia-log-entry">
-        <span style="color:var(--muted)">${t}</span>
-        <span class="${cls}">${icon}</span>
-        <span style="flex:1">${(METODOS[op.metodo]||op.metodo).substring(0,12)}</span>
-        <span style="color:${op.sinal==='COMPRA'?'#00e676':'#ff1744'}">${op.sinal}</span>
-        <span style="color:var(--muted)">${op.tf}</span>
-        <span style="color:var(--muted2)">${op.prob}%</span>
-      </div>`;
-    }).join('');
+  const elTot=document.getElementById('iaTotalOps');
+  const elWr=document.getElementById('iaWinRate');
+  const elBest=document.getElementById('iaBestMethod');
+  if(elTot) elTot.textContent=tot;
+  if(elWr) elWr.textContent=wr!==null?wr+'%':'—';
+  if(elBest) elBest.textContent=bestM?(METODOS[bestM]||bestM).replace(/[^\w\s]/g,'').trim().substring(0,10):'—';
+
+  // ranking
+  const rankEl=document.getElementById('iaMethodRanking');
+  if(rankEl){
+    const entries=Object.entries(MEM.mStats)
+      .map(([m,s])=>({m,w:s.w,l:s.l,tot:s.w+s.l,rate:s.w/(s.w+s.l)}))
+      .filter(e=>e.tot>=1).sort((a,b)=>b.rate-a.rate).slice(0,10);
+    if(!entries.length){
+      rankEl.innerHTML='<div style="font-size:10px;color:var(--muted2);text-align:center;padding:8px">Sem dados. Analise e registre resultados!</div>';
+    }else{
+      rankEl.innerHTML=entries.map(e=>{
+        const pct=Math.round(e.rate*100);
+        const c=pct>=70?'#00e676':pct>=55?'#ffd600':'#ff5722';
+        return `<div class="ia-rank-item">
+          <span style="font-size:9px;min-width:90px;overflow:hidden">${(METODOS[e.m]||e.m).substring(0,15)}</span>
+          <div class="ia-rank-bar"><div class="ia-rank-fill" style="width:${pct}%;background:${c}"></div></div>
+          <span class="ia-rank-pct" style="color:${c}">${pct}%</span>
+          <span style="font-size:8px;color:var(--muted2)">${e.w}W/${e.l}L</span>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // log
+  const logEl=document.getElementById('iaLog');
+  if(logEl){
+    const recent=[...MEM.ops].reverse().slice(0,50);
+    if(!recent.length){
+      logEl.innerHTML='<div style="font-size:10px;color:var(--muted2);text-align:center;padding:8px">Nenhuma operação ainda.</div>';
+    }else{
+      logEl.innerHTML=recent.map(op=>{
+        const d=new Date(op.ts);
+        const t=`${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+        const cl=op.resultado==='win'?'ia-log-win':'ia-log-loss';
+        const ic=op.resultado==='win'?'✅':'❌';
+        const sc=op.sinal==='COMPRA'?'#00e676':'#ff1744';
+        return `<div class="ia-log-entry">
+          <span style="color:var(--muted);min-width:32px">${t}</span>
+          <span class="${cl}">${ic}</span>
+          <span style="flex:1;overflow:hidden;white-space:nowrap">${(METODOS[op.metodo]||op.metodo).substring(0,13)}</span>
+          <span style="color:${sc};font-weight:700">${op.sinal==='COMPRA'?'▲C':'▼V'}</span>
+          <span style="color:var(--muted);min-width:28px">${op.tf}</span>
+          <span style="color:var(--muted2)">${op.prob}%</span>
+        </div>`;
+      }).join('');
+    }
   }
 }
 
-function clearIaMemory() {
-  if(!confirm('Tem certeza? Isso apagará toda a memória de aprendizagem da IA.')) return;
-  iaMemory = { ops:[], methodStats:{}, tfStats:{}, signalStats:{}, totalWins:0, totalLosses:0 };
-  saveIaMemory();
-  lastResult = null;
-  document.getElementById('btnGanhou').disabled = true;
-  document.getElementById('btnErrou').disabled = true;
-  renderIaPanel();
+function clearIaMemory(){
+  if(!confirm('Apagar TODA a memória da IA? Esta ação não pode ser desfeita.')) return;
+  MEM={ops:[],mStats:{},tfStats:{},skStats:{},confStats:{},wins:0,losses:0};
+  iaSave(); lastResult=null; feedbackDone=false;
+  iaSetBtns(false);
+  iaRenderPanel();
+  iaShowMsg('🗑️ Memória apagada.');
 }
 
 // ==================== ANÁLISE PRINCIPAL ====================
 async function doAnalyze() {
   if(!imgB64 || analyzing) return;
   analyzing = true;
+  feedbackDone = false;   // reset feedback para nova análise
+  lastResult   = null;
+  iaSetBtns(false);       // desabilita botões até resultado
   updateAnalyzeButton();
   document.getElementById('resultSection').innerHTML = '';
   document.getElementById('progressWrap').style.display = 'block';
@@ -1761,75 +1775,97 @@ async function doAnalyze() {
 
 // ==================== RENDERIZAR RESULTADO ====================
 function renderResult(r) {
-  const isUp = r.sinal === 'COMPRA';
-  const mc = isUp ? '#00e676' : '#ff1744';
-  const bg1 = isUp ? 'rgba(0,137,123,.18)' : 'rgba(183,28,28,.18)';
-  const bg2 = isUp ? 'rgba(0,230,118,.12)' : 'rgba(255,23,68,.12)';
-  const prob = Math.max(0, Math.min(100, r.probabilidade || 65));
-  const barColor = prob >= 78 ? '#00e676' : (prob >= 63 ? '#ffd600' : '#ff5722');
-
-  // Ajuste de sinal pela IA se ativa
-  let finalSinal = r.sinal;
+  // 1. Adaptação de sinal pela IA
+  let finalSinal = r.sinal || 'COMPRA';
   let iaAdaptBadge = '';
-  if(iaLearningOn) {
-    const adapted = iaAdaptSignal(r);
-    if(adapted.adjusted) {
-      finalSinal = adapted.sinal;
-      r.sinal = finalSinal;
-      iaAdaptBadge = `<div class="ia-adapt-badge">🧠 IA Adaptou: ${adapted.reason}</div>`;
-    }
+  const adapted = iaAdaptSignal(r);
+  if(adapted.adjusted){
+    finalSinal = adapted.sinal;
+    r.sinal = finalSinal;
+    iaAdaptBadge = `<div class="ia-adapt-badge">🧠 IA Adaptou: ${adapted.reason}</div>`;
   }
 
-  // Barras de confiança
-  const confBars = prob >= 78 ? 3 : (prob >= 63 ? 2 : 1);
-  const barColorClass = prob >= 78 ? 'lit-green' : (prob >= 63 ? 'lit-yellow' : 'lit-red');
-  let barsHtml = '<div class="conf-bars">';
-  for(let i=0;i<3;i++) barsHtml += `<div class="conf-bar ${i<confBars?barColorClass:''}"></div>`;
-  barsHtml += '</div>';
+  // 2. Score de confluência
+  const confScore = iaConfluenciaOk(r);
+  const confOk    = confScore >= 3;
+  let confBadge = '';
+  if(!confOk){
+    confBadge = `<div style="margin-top:6px;padding:6px 10px;background:rgba(255,214,0,0.1);border:1px solid rgba(255,214,0,0.3);border-radius:8px;font-size:10px;color:#ffd600">
+      ⚠️ Confluência baixa (${confScore}/5) — Aguarde melhor setup para operar conta real.
+    </div>`;
+  }
 
-  const padrao = r.padrao ? `<div style="margin-top:8px;font-size:10px;color:var(--muted2)">📐 Padrão: <strong style="color:${mc}">${r.padrao}</strong></div>` : '';
-  const enhancedBadge = (isEnhanced || r._enhanced) ? '<span style="font-size:9px;color:#00e676;background:rgba(0,230,118,0.1);padding:3px 8px;border-radius:6px;border:1px solid rgba(0,230,118,0.2)">🔬 Img. Melhorada</span>' : '';
+  const isUp   = finalSinal === 'COMPRA';
+  const mc     = isUp ? '#00e676' : '#ff1744';
+  const bg1    = isUp ? 'rgba(0,137,123,.18)' : 'rgba(183,28,28,.18)';
+  const bg2    = isUp ? 'rgba(0,230,118,.12)' : 'rgba(255,23,68,.12)';
+  const prob   = Math.max(0, Math.min(100, r.probabilidade || 65));
+  const barClr = prob>=78?'#00e676':prob>=63?'#ffd600':'#ff5722';
 
-  // Guardar último resultado para feedback
-  lastResult = { sinal: finalSinal, metodo: selMethod, tf: selTf, prob, timestamp: Date.now() };
-  // Habilitar botões de feedback se IA ativa
-  const feedbackHtml = `
-    <div class="result-feedback">
-      <button class="btn-ganhou" onclick="registrarResultado('win')">✅ GANHOU</button>
-      <button class="btn-errou" onclick="registrarResultado('loss')">❌ ERROU</button>
+  const confBars = prob>=78?3:prob>=63?2:1;
+  const bcl = prob>=78?'lit-green':prob>=63?'lit-yellow':'lit-red';
+  let barsHtml='<div class="conf-bars">';
+  for(let i=0;i<3;i++) barsHtml+=`<div class="conf-bar ${i<confBars?bcl:''}"></div>`;
+  barsHtml+='</div>';
+
+  const padrao  = r.padrao ? `<div style="margin-top:8px;font-size:10px;color:var(--muted2)">📐 Padrão: <strong style="color:${mc}">${r.padrao}</strong></div>` : '';
+  const enhBadge= (isEnhanced||r._enhanced)?'<span style="font-size:9px;color:#00e676;background:rgba(0,230,118,0.1);padding:3px 8px;border-radius:6px;border:1px solid rgba(0,230,118,0.2)">🔬 Img. Melhorada</span>':'';
+
+  // 3. Salvar lastResult ANTES de escrever o HTML (para botões inline funcionarem)
+  lastResult = {sinal:finalSinal, metodo:selMethod, tf:selTf, prob, confianca:r.confianca||'MEDIA'};
+  feedbackDone = false;
+
+  // 4. Habilitar botões do painel IA
+  iaSetBtns(true);
+
+  // 5. Confluência display
+  const confScoreBar = `
+    <div style="margin-top:8px;padding:8px 10px;background:rgba(0,0,0,0.3);border-radius:8px;border:1px solid rgba(255,255,255,0.07)">
+      <div style="font-size:9px;color:var(--muted2);letter-spacing:1.5px;margin-bottom:5px;font-family:'Rajdhani',sans-serif;font-weight:700">
+        CONFLUÊNCIA: ${confScore}/5 ${confOk?'✅ OPERAR':'⚠️ AGUARDAR'}
+      </div>
+      <div style="height:5px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden">
+        <div style="width:${confScore*20}%;height:100%;background:${confScore>=4?'#00e676':confScore>=3?'#ffd600':'#ff5722'};border-radius:4px;transition:width .5s"></div>
+      </div>
     </div>`;
 
+  // 6. Render
   const html = `
     <div class="result-card">
       <div class="final-signal" style="background:linear-gradient(135deg,${bg1},${bg2});border:1.5px solid ${mc};">
-        <div style="font-size:52px;margin-bottom:4px">${isUp ? '🟢' : '🔴'}</div>
-        <div style="font-family:'Rajdhani',sans-serif;font-size:44px;font-weight:800;letter-spacing:5px;color:${mc}">${finalSinal}</div>
-        <div style="font-size:11px;color:var(--muted2);margin:8px 0 4px">
-          Confiança: <strong style="color:${mc}">${r.confianca}</strong> &nbsp;•&nbsp; Probabilidade: <strong style="color:${mc}">${prob}%</strong>
+        <div style="font-size:48px;margin-bottom:4px">${isUp?'🟢':'🔴'}</div>
+        <div style="font-family:'Rajdhani',sans-serif;font-size:42px;font-weight:800;letter-spacing:5px;color:${mc}">${finalSinal}</div>
+        <div style="font-size:11px;color:var(--muted2);margin:6px 0 4px">
+          Confiança: <strong style="color:${mc}">${r.confianca||'MEDIA'}</strong> &nbsp;•&nbsp; Prob: <strong style="color:${mc}">${prob}%</strong>
         </div>
         ${barsHtml}
-        <div style="margin:8px 0 12px;background:rgba(0,0,0,0.4);border-radius:8px;height:8px;overflow:hidden">
-          <div style="width:${prob}%;height:100%;background:linear-gradient(90deg,${barColor},${mc});border-radius:8px;transition:width .6s ease"></div>
+        <div style="margin:8px 0 10px;background:rgba(0,0,0,0.4);border-radius:8px;height:8px;overflow:hidden">
+          <div style="width:${prob}%;height:100%;background:linear-gradient(90deg,${barClr},${mc});border-radius:8px;transition:width .6s ease"></div>
         </div>
-        <div style="padding:10px 14px;background:rgba(0,0,0,.35);border-radius:10px;font-size:11px;font-weight:500;line-height:1.6;text-align:left">${r.resumo || 'Análise concluída.'}</div>
+        ${confScoreBar}
+        ${confBadge}
+        <div style="margin-top:10px;padding:10px 14px;background:rgba(0,0,0,.35);border-radius:10px;font-size:11px;font-weight:500;line-height:1.6;text-align:left">${r.resumo||'Análise concluída.'}</div>
         ${padrao}
         ${iaAdaptBadge}
-        <div style="margin-top:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-          <span style="font-size:10px;color:var(--cyan);background:rgba(0,176,255,0.1);padding:4px 10px;border-radius:6px;border:1px solid rgba(0,176,255,0.2)">⚙️ ${r.metodo_usado || METODOS[selMethod]}</span>
-          <span style="font-size:10px;color:var(--muted2);background:rgba(255,255,255,0.05);padding:4px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.08)">⏱️ ${selTf}</span>
-          <span style="font-size:10px;color:${isUp?'#00e676':'#ff5722'};background:${isUp?'rgba(0,230,118,0.08)':'rgba(255,87,34,0.08)'};padding:4px 10px;border-radius:6px;border:1px solid ${isUp?'rgba(0,230,118,0.2)':'rgba(255,87,34,0.2)'}">📈 ${r.tendencia || (isUp?'ALTA':'BAIXA')}</span>
-          ${enhancedBadge}
+        <div style="margin-top:10px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
+          <span style="font-size:9px;color:var(--cyan);background:rgba(0,176,255,0.1);padding:3px 8px;border-radius:6px;border:1px solid rgba(0,176,255,0.2)">⚙️ ${r.metodo_usado||METODOS[selMethod]}</span>
+          <span style="font-size:9px;color:var(--muted2);background:rgba(255,255,255,0.05);padding:3px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.08)">⏱️ ${selTf}</span>
+          <span style="font-size:9px;color:${isUp?'#00e676':'#ff5722'};background:${isUp?'rgba(0,230,118,0.08)':'rgba(255,87,34,0.08)'};padding:3px 8px;border-radius:6px;border:1px solid ${isUp?'rgba(0,230,118,0.2)':'rgba(255,87,34,0.2)'}">📈 ${r.tendencia||(isUp?'ALTA':'BAIXA')}</span>
+          ${enhBadge}
         </div>
       </div>
-      <div class="ai-note"><strong>⚠️ Aviso de Risco:</strong> Análise para fins educacionais. Nunca opere sem gerenciamento de risco. Resultados passados não garantem resultados futuros.</div>
-      ${feedbackHtml}
+      <div class="ai-note" style="margin:8px 16px 0;padding:8px 10px;background:rgba(255,214,0,.05);border:1px solid rgba(255,214,0,.15);border-radius:8px;font-size:10px">
+        <strong>⚠️ Risco:</strong> Análise educacional. Opere com gestão de risco. Resultados passados não garantem futuros.
+      </div>
+      <div style="padding:10px 14px 4px;font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;color:var(--purple);letter-spacing:1.5px">▸ REGISTRAR RESULTADO DA OPERAÇÃO</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 14px 14px">
+        <button class="btn-ganhou res-ganhou" onclick="registrarResultado('win')">✅ GANHOU</button>
+        <button class="btn-errou res-errou" onclick="registrarResultado('loss')">❌ ERROU</button>
+      </div>
     </div>
   `;
   document.getElementById('resultSection').innerHTML = html;
-  document.getElementById('resultSection').scrollIntoView({ behavior:'smooth', block:'nearest' });
-  // Habilitar botões de feedback no painel IA
-  document.getElementById('btnGanhou').disabled = false;
-  document.getElementById('btnErrou').disabled = false;
+  document.getElementById('resultSection').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 </script>
 </body>
