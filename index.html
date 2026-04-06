@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
-<title>TRADER PHOTO I.A PRO v4 - Visão Computacional Real</title>
+<title>TRADER PHOTO I.A PRO v6 - IA Adaptativa</title>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -142,22 +142,31 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
 #camOverlay{display:none;position:fixed;inset:0;z-index:999;background:#000;flex-direction:column}
 #camOverlay.on{display:flex}
 #liveVid{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
-.cam-ui{position:relative;z-index:10;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:16px 20px 28px}
-.cam-top-bar{display:flex;width:100%;justify-content:space-between;align-items:center}
-.cam-label{background:rgba(0,0,0,0.5);border:1px solid rgba(0,230,118,0.4);border-radius:8px;padding:6px 12px;font-family:'Rajdhani',sans-serif;font-size:11px;color:var(--green);letter-spacing:1.5px}
-.cam-close{width:40px;height:40px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.3);border-radius:50%;color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.cam-frame{width:98%;max-width:1200px;aspect-ratio:16/9;border:2px solid rgba(0,230,118,.75);border-radius:8px;position:relative;flex:1;max-height:calc(100vh - 160px)}
-.cam-frame-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Rajdhani',sans-serif;font-size:12px;color:rgba(0,230,118,0.5);letter-spacing:2px;text-align:center;pointer-events:none}
-.cam-distortion-info{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(0,176,255,0.7);text-align:center;padding:4px 0}
-.cam-scanline-h{position:absolute;top:0;bottom:0;width:1.5px;background:linear-gradient(180deg,transparent,var(--green),transparent);animation:scan-h 2.5s linear infinite;left:0}
-.cam-scanline-v{position:absolute;left:0;right:0;height:1.5px;background:linear-gradient(90deg,transparent,var(--green),transparent);animation:scan-v 3s linear infinite;top:0}
-.cam-corners::before,.cam-corners::after{content:'';position:absolute;width:18px;height:18px;border-color:var(--cyan);border-style:solid}
-.cam-corners::before{top:-2px;left:-2px;border-width:2px 0 0 2px}
-.cam-corners::after{bottom:-2px;right:-2px;border-width:0 2px 2px 0}
-.cam-bottom-bar{display:flex;align-items:center;justify-content:center;gap:24px;width:100%}
-.cam-shutter{width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#00897b,var(--green));border:4px solid #fff;box-shadow:0 0 24px rgba(0,230,118,.6);display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;transition:transform .1s}
-.cam-shutter:active{transform:scale(.93)}
-.cam-mode-toggle{background:rgba(0,0,0,.5);border:1px solid rgba(0,176,255,0.4);border-radius:8px;padding:8px 14px;font-family:'Rajdhani',sans-serif;font-size:11px;color:var(--cyan);cursor:pointer;letter-spacing:1px}
+.cam-ui{position:relative;z-index:10;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:0}
+.cam-top-bar{display:flex;width:100%;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(0,0,0,0.5);z-index:11}
+.cam-label{background:rgba(0,0,0,0.6);border:1px solid rgba(0,230,118,0.5);border-radius:8px;padding:5px 12px;font-family:'Rajdhani',sans-serif;font-size:11px;color:var(--green);letter-spacing:1.5px}
+.cam-close{width:38px;height:38px;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.4);border-radius:50%;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+/* Frame ocupa 100% da área entre top-bar e bottom-bar */
+.cam-frame{
+  flex:1;width:100%;position:relative;
+  border:none;border-radius:0;
+  overflow:hidden;
+  box-shadow: inset 0 0 0 2px rgba(0,230,118,0.6);
+}
+/* Cantos decorativos nos 4 cantos do frame */
+.cam-frame::before,.cam-frame::after{content:'';position:absolute;width:24px;height:24px;border-color:var(--cyan);border-style:solid;z-index:2}
+.cam-frame::before{top:8px;left:8px;border-width:3px 0 0 3px}
+.cam-frame::after{bottom:8px;right:8px;border-width:0 3px 3px 0}
+.cam-corner-tr,.cam-corner-bl{content:'';position:absolute;width:24px;height:24px;border-color:var(--cyan);border-style:solid;z-index:2}
+.cam-corner-tr{top:8px;right:8px;border-width:3px 3px 0 0}
+.cam-corner-bl{bottom:8px;left:8px;border-width:0 0 3px 3px}
+.cam-frame-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Rajdhani',sans-serif;font-size:13px;color:rgba(0,230,118,0.45);letter-spacing:2px;text-align:center;pointer-events:none;text-shadow:0 0 12px rgba(0,230,118,0.3)}
+.cam-scanline-h{position:absolute;top:0;bottom:0;width:1.5px;background:linear-gradient(180deg,transparent,var(--green),transparent);animation:scan-h 2.5s linear infinite;left:0;z-index:1}
+.cam-scanline-v{position:absolute;left:0;right:0;height:1.5px;background:linear-gradient(90deg,transparent,var(--green),transparent);animation:scan-v 3s linear infinite;top:0;z-index:1}
+.cam-bottom-bar{display:flex;align-items:center;justify-content:center;gap:40px;width:100%;padding:14px 20px 24px;background:rgba(0,0,0,0.65)}
+.cam-shutter{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#00897b,var(--green));border:4px solid #fff;box-shadow:0 0 28px rgba(0,230,118,.7);display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;transition:transform .1s}
+.cam-shutter:active{transform:scale(.91)}
+.cam-mode-toggle{background:rgba(0,0,0,.6);border:1px solid rgba(0,176,255,0.5);border-radius:10px;padding:10px 18px;font-family:'Rajdhani',sans-serif;font-size:12px;color:var(--cyan);cursor:pointer;letter-spacing:1px;text-align:center}
 .cam-flash{position:fixed;inset:0;background:#fff;z-index:9999;pointer-events:none;opacity:0;transition:opacity .1s}
 .cam-flash.on{opacity:.85}
 
@@ -187,6 +196,44 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
 .conf-bar.lit-green{background:var(--green)}
 .conf-bar.lit-yellow{background:var(--yellow)}
 .conf-bar.lit-red{background:var(--red)}
+
+/* IA APRENDIZAGEM */
+.ia-learn-section{margin:10px 14px 0;background:linear-gradient(135deg,rgba(206,147,216,0.08),rgba(255,64,129,0.05));border:1px solid rgba(206,147,216,0.3);border-radius:12px;overflow:hidden}
+.ia-learn-header{display:flex;align-items:center;gap:8px;padding:9px 14px;background:rgba(206,147,216,0.08);border-bottom:1px solid rgba(206,147,216,0.15);cursor:pointer;user-select:none}
+.ia-learn-title{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--purple);text-transform:uppercase;flex:1}
+.ia-learn-body{padding:12px 14px;display:none}
+.ia-learn-body.open{display:block}
+.ia-toggle-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.ia-toggle-btn{padding:8px 18px;border-radius:20px;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;cursor:pointer;border:none;letter-spacing:1px;transition:all .2s}
+.ia-toggle-btn.on{background:linear-gradient(135deg,#6a1b9a,var(--purple));color:#fff;box-shadow:0 0 14px rgba(206,147,216,0.4)}
+.ia-toggle-btn.off{background:rgba(255,255,255,0.06);color:var(--muted2);border:1px solid var(--border)}
+.ia-status-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:all .3s}
+.ia-status-dot.active{background:var(--purple);box-shadow:0 0 8px var(--purple);animation:pulse 1.4s ease-in-out infinite}
+.ia-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.ia-stat-box{background:rgba(0,0,0,0.3);border-radius:8px;padding:8px;text-align:center;border:1px solid rgba(255,255,255,0.06)}
+.ia-stat-val{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700}
+.ia-stat-lbl{font-size:9px;color:var(--muted2);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+.ia-feedback-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.btn-ganhou{padding:10px;border:none;border-radius:10px;background:linear-gradient(135deg,#1b5e20,var(--green));color:#000;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:1px}
+.btn-errou{padding:10px;border:none;border-radius:10px;background:linear-gradient(135deg,#b71c1c,var(--red));color:#fff;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:1px}
+.btn-ganhou:disabled,.btn-errou:disabled{opacity:0.35;cursor:not-allowed}
+.ia-method-ranking{margin-top:8px}
+.ia-method-rank-title{font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--purple);margin-bottom:6px}
+.ia-rank-item{display:flex;align-items:center;gap:6px;padding:5px 8px;background:rgba(0,0,0,0.25);border-radius:6px;margin-bottom:4px;font-size:10px}
+.ia-rank-bar{flex:1;height:4px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden}
+.ia-rank-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--purple),var(--pink));transition:width .6s ease}
+.ia-rank-pct{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--purple);min-width:32px;text-align:right}
+.ia-log{max-height:120px;overflow-y:auto;margin-top:8px;padding:6px 8px;background:rgba(0,0,0,0.3);border-radius:8px;border:1px solid rgba(255,255,255,0.06)}
+.ia-log-entry{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted2);padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;gap:6px;align-items:center}
+.ia-log-entry:last-child{border-bottom:none}
+.ia-log-win{color:var(--green)}
+.ia-log-loss{color:var(--red)}
+.ia-clear-btn{margin-top:6px;padding:5px 12px;border:1px solid rgba(255,255,255,0.1);border-radius:6px;background:transparent;color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:10px;cursor:pointer;font-weight:700}
+/* Sinal adaptado pela IA */
+.ia-adapt-badge{display:inline-block;margin-top:6px;padding:4px 10px;background:rgba(206,147,216,0.15);border:1px solid rgba(206,147,216,0.4);border-radius:8px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--purple)}
+/* Botões feedback após resultado */
+.result-feedback{display:flex;gap:8px;padding:10px 16px;background:rgba(0,0,0,0.2)}
+.result-feedback .btn-ganhou,.result-feedback .btn-errou{flex:1;padding:8px}
 </style>
 </head>
 <body>
@@ -199,21 +246,22 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
   <div class="cam-flash" id="camFlash"></div>
   <div class="cam-ui">
     <div class="cam-top-bar">
-      <div class="cam-label" id="camLabel">📷 MODO TELA CHEIA</div>
+      <div class="cam-label" id="camLabel">📷 APONTE PARA A TELA DO PC</div>
       <div class="cam-close" onclick="closeCamera()">✕</div>
     </div>
-    <!-- Frame ocupa toda área central deixando espaço para os botões -->
-    <div class="cam-frame cam-corners" id="camFrame">
+    <!-- Frame full-screen: o vídeo cobre tudo, o frame marca a área de captura -->
+    <div class="cam-frame" id="camFrame">
+      <div class="cam-corner-tr"></div>
+      <div class="cam-corner-bl"></div>
       <div class="cam-scanline-h"></div>
       <div class="cam-scanline-v"></div>
-      <div class="cam-frame-label">APONTE PARA A TELA INTEIRA</div>
+      <div class="cam-frame-label">📊 ENQUADRE O GRÁFICO COMPLETO</div>
     </div>
     <div class="cam-bottom-bar">
-      <div class="cam-mode-toggle" onclick="toggleCamFacing()">🔄 Câmera</div>
+      <div class="cam-mode-toggle" onclick="toggleCamFacing()">🔄<br><span style="font-size:9px">VIRAR</span></div>
       <div class="cam-shutter" onclick="shootPhoto()">📸</div>
-      <div class="cam-mode-toggle" onclick="toggleDistortion()">🔲 Distorção</div>
+      <div class="cam-mode-toggle" onclick="toggleCamGrid()">⊞<br><span id="gridLabel" style="font-size:9px">GRADE</span></div>
     </div>
-    <div class="cam-distortion-info" id="camDistInfo">🔧 Correção: <span id="distLabel">AUTO</span></div>
   </div>
 </div>
 
@@ -224,10 +272,10 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
       <div class="logo-hex">📊</div>
       <div>
         <div class="logo-name">TRADER PHOTO I.A</div>
-        <div class="logo-tag">Visão Computacional Real • 14 Métodos • 9 Modos</div>
+        <div class="logo-tag">IA Adaptativa • 16 Métodos • 9 Modos • Aprendizagem</div>
       </div>
     </div>
-    <div class="pro-badge">PRO v4</div>
+    <div class="pro-badge">PRO v6</div>
   </div>
   <div class="header-live">
     <div class="live-dot"></div>
@@ -352,6 +400,49 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
 <div class="section-label">▸ Timeframe</div>
 <div class="tf-strip" id="tfStrip"></div>
 
+<!-- IA APRENDIZAGEM -->
+<div class="ia-learn-section">
+  <div class="ia-learn-header" onclick="toggleIaLearn()">
+    <span style="font-size:14px">🧠</span>
+    <span class="ia-learn-title">IA Aprendizagem Adaptativa</span>
+    <div class="ia-status-dot" id="iaStatusDot"></div>
+    <span id="iaLearnArrow" style="color:var(--purple);font-size:12px">▼</span>
+  </div>
+  <div class="ia-learn-body" id="iaLearnBody">
+    <div class="ia-toggle-row">
+      <button class="ia-toggle-btn off" id="iaToggleBtn" onclick="toggleIaLearning()">🧠 LIGAR IA</button>
+      <span style="font-size:10px;color:var(--muted2)" id="iaStatusTxt">IA desligada — ligue para iniciar aprendizagem</span>
+    </div>
+    <div class="ia-stats-grid">
+      <div class="ia-stat-box">
+        <div class="ia-stat-val" id="iaTotalOps" style="color:var(--cyan)">0</div>
+        <div class="ia-stat-lbl">Operações</div>
+      </div>
+      <div class="ia-stat-box">
+        <div class="ia-stat-val" id="iaWinRate" style="color:var(--green)">—</div>
+        <div class="ia-stat-lbl">Assertividade</div>
+      </div>
+      <div class="ia-stat-box">
+        <div class="ia-stat-val" id="iaBestMethod" style="color:var(--yellow);font-size:11px">—</div>
+        <div class="ia-stat-lbl">Melhor Método</div>
+      </div>
+    </div>
+    <div style="font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:1.5px;margin-bottom:6px">▸ RESULTADO DA ÚLTIMA OPERAÇÃO</div>
+    <div class="ia-feedback-row">
+      <button class="btn-ganhou" id="btnGanhou" onclick="registrarResultado('win')" disabled>✅ GANHOU</button>
+      <button class="btn-errou" id="btnErrou" onclick="registrarResultado('loss')" disabled>❌ ERROU</button>
+    </div>
+    <div id="iaAdaptMsg" style="font-size:10px;color:var(--purple);margin-bottom:8px;min-height:14px"></div>
+    <div class="ia-method-ranking">
+      <div class="ia-method-rank-title">▸ RANKING DE MÉTODOS (por assertividade)</div>
+      <div id="iaMethodRanking"></div>
+    </div>
+    <div style="font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:1.5px;margin:8px 0 4px">▸ HISTÓRICO DE OPERAÇÕES</div>
+    <div class="ia-log" id="iaLog"><div style="font-size:10px;color:var(--muted2);text-align:center;padding:8px">Nenhuma operação registrada ainda.</div></div>
+    <button class="ia-clear-btn" onclick="clearIaMemory()">🗑️ Limpar Memória</button>
+  </div>
+</div>
+
 <!-- PREVIEW -->
 <div class="preview-zone">
   <div class="preview-box portrait-mode" id="previewBox">
@@ -401,7 +492,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
 </div>
 
 <div id="resultSection"></div>
-<div class="footer-note">TRADER PHOTO I.A PRO v4 • Visão Computacional Real • 14 Métodos • 9 Modos API • Correção Perspectiva Automática</div>
+<div class="footer-note">TRADER PHOTO I.A PRO v6 • IA Adaptativa • 16 Métodos • 9 Modos API • Aprendizagem com Memória Extensa</div>
 </div></div>
 
 <script>
@@ -419,7 +510,8 @@ const METODOS = {
   otc:"💎 OTC/Binárias", auto:"🤖 IA Completa", sr:"📊 Sup/Res", vela:"🕯️ Vela a Vela",
   pavio:"✔ Pavio/Sombra", perfil:"📈 Perfil Vol.", price:"⚡ Price Action", fibo:"📐 Fib+MACD",
   "15min":"⏱️ Scalp 1-5M", forex:"🌍 Forex", volume:"📊 Volume/VSA",
-  continuacao:"📈 Continuação", reversao:"🔄 Reversão", smc:"🧠 SMC/ICT"
+  continuacao:"📈 Continuação", reversao:"🔄 Reversão", smc:"🧠 SMC/ICT",
+  pavio_corpo:"🕯️ Pavio+Corpo", rompe_maxmin:"📐 Rompe Máx/Mín"
 };
 
 // ===================== PROMPTS ESPECIALIZADOS POR MÉTODO =====================
@@ -578,7 +670,68 @@ Análise pelo conceito de dinheiro inteligente:
 5. Identifique Premium Zone (acima do range = venda) e Discount Zone (abaixo do midpoint = compra)
 6. Analise se houve grabção de liquidez (stop hunt) recente
 7. Determine o POI (Point of Interest) mais próximo para entrada institucional
-Foco em alinhar com o fluxo do dinheiro institucional.${retorno}`
+Foco em alinhar com o fluxo do dinheiro institucional.${retorno}`,
+
+    pavio_corpo: `${base} MODO ROMPIMENTO PAVIO+CORPO (Rejeição Contra-Tendência):
+
+⚠️ REGRA FUNDAMENTAL: Pavio rompe nível MAS CORPO fecha DENTRO da zona anterior = REJEIÇÃO FORTE = sinal CONTRÁRIO à tentativa de rompimento.
+
+IDENTIFIQUE O PADRÃO:
+1. Localize um candle com pavio longo (superior ou inferior) que ultrapassou o máximo ou mínimo do candle anterior
+2. Verifique se o CORPO desse candle fechou DENTRO do range do candle anterior (rejeição confirmada)
+3. O pavio deve ser >= 1.5x o tamanho do corpo para ser válido
+4. Um pavio superior longo com corpo fechando abaixo = REJEIÇÃO DE ALTA → sinal de VENDA
+5. Um pavio inferior longo com corpo fechando acima = REJEIÇÃO DE BAIXA → sinal de COMPRA
+
+CONFLUÊNCIAS (quanto mais, maior a probabilidade):
+- Candle de confirmação na direção do sinal após o pavio (muito importante)
+- Zona de suporte/resistência histórica no nível do pavio
+- Média móvel (SMA/EMA) servindo como suporte/resistência no mesmo nível
+- Nível de Fibonacci (38.2%, 50%, 61.8%) coincidindo com a zona
+- Tendência geral favorecendo a reversão (pavio em topo de tendência de alta = venda mais forte)
+- Volume visual decrescente antes do pavio (exaustão)
+- Divergência de momentum (candles menores antes do pavio)
+
+PROBABILIDADE POR CONFLUÊNCIAS:
+- 2-3 fatores: 60-68% (confiança BAIXA)  
+- 4-5 fatores: 69-78% (confiança MEDIA)
+- 6+ fatores: 79-92% (confiança ALTA)${retorno}`,
+
+    rompe_maxmin: `${base} MODO ROMPIMENTO DE MÁXIMA/MÍNIMA COM CORPO (Continuação de Tendência):
+
+⚠️ REGRA FUNDAMENTAL: Candle cuja MÁXIMA DO PAVIO + CORPO rompe e FECHA ACIMA da máxima do candle anterior = ROMPIMENTO VÁLIDO = COMPRA. Candle que fecha ABAIXO da mínima anterior = ROMPIMENTO VÁLIDO = VENDA.
+
+CONCEITO: Diferente da rejeição (pavio corpo), aqui o CORPO DO CANDLE fecha além do nível — isso confirma o rompimento com força.
+
+PARA COMPRA (rompimento de máxima):
+1. Identifique o candle anterior com sua máxima definida
+2. O candle atual deve fechar seu CORPO (não apenas o pavio) ACIMA da máxima anterior
+3. Quanto maior o corpo em relação ao pavio, mais forte o rompimento
+4. Um Marubozu (sem pavios) fechando acima = rompimento de máxima força
+5. Verifique se há Volume visual alto (corpo grande, cor sólida) confirmando
+6. A tendência anterior aos últimos 3-5 candles deve sugerir pressão compradora
+7. Identifique se o rompimento ocorre em zona de resistência histórica (breakout mais potente)
+8. Analise se houve correção (pullback) antes do rompimento (melhor qualidade)
+9. Verifique confluência com SMA/EMA cruzando abaixo do preço (suporte dinâmico)
+10. Fibonacci: rompimento acima do nível 61.8% ou extensão 127.2% confirma força
+
+PARA VENDA (rompimento de mínima):
+1. O candle atual fecha seu CORPO ABAIXO da mínima do candle anterior
+2. Corpo grande e vermelho com pouco pavio superior = força vendedora
+3. Tendência de baixa confirmada nos candles anteriores
+4. Rompimento de suporte histórico = sinal mais forte
+5. SMA/EMA acima do preço como resistência dinâmica
+6. Fibonacci: fechamento abaixo de 38.2% de retração confirma continuação de queda
+
+VALIDAÇÃO CRUZADA — Verifique SEMPRE:
+- O candle de rompimento fechou REALMENTE além do nível? (não apenas o pavio)
+- Há espaço para o preço continuar? (próximo S/R não muito próximo)
+- O contexto maior da tendência está alinhado?
+
+PROBABILIDADE:
+- Rompimento simples: 62-70%
+- Rompimento + confluência SMA: 71-79%
+- Rompimento + SMA + Fibo + volume: 80-92%${retorno}`
   };
 
   return prompts[method] || prompts.auto;
@@ -594,6 +747,7 @@ try {
 
 // ==================== INIT ====================
 window.onload = function() {
+  loadIaMemory();
   buildTfButtons();
   buildMethodButtons();
   updateClock();
@@ -626,7 +780,7 @@ function buildTfButtons() {
 
 function buildMethodButtons() {
   const wrap = document.getElementById('methodWrap');
-  const novos = ["volume","continuacao","reversao","smc"];
+  const novos = ["volume","continuacao","reversao","smc","pavio_corpo","rompe_maxmin"];
   for(let [key, label] of Object.entries(METODOS)) {
     const btn = document.createElement('button');
     btn.className = 'method-btn' + (key === selMethod ? ' active' : '') + (novos.includes(key) ? ' is-new' : '');
@@ -729,17 +883,15 @@ function setMode(mode) {
 }
 
 // ==================== CÂMERA ====================
-let distortionMode = 'auto'; // 'auto', 'barrel', 'none'
+let camGridOn = false;
 
 async function openCamera() {
   try {
-    // Solicita resolução máxima para melhor qualidade
     const constraints = {
       video: {
         facingMode: camFacing,
         width: { ideal: 3840, min: 1280 },
-        height: { ideal: 2160, min: 720 },
-        aspectRatio: { ideal: 16/9 }
+        height: { ideal: 2160, min: 720 }
       }
     };
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -750,7 +902,6 @@ async function openCamera() {
     document.getElementById('camOverlay').classList.add('on');
     updateCamLabel();
   } catch(e) {
-    // Fallback com constraints menores
     try {
       const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:camFacing,width:{ideal:1920},height:{ideal:1080}}});
       videoStream = stream;
@@ -761,122 +912,104 @@ async function openCamera() {
     } catch(e2) { showErr('Erro câmera: ' + e2.message); }
   }
 }
+
 function toggleCamFacing() {
   if(videoStream) videoStream.getTracks().forEach(t => t.stop());
   camFacing = camFacing === 'environment' ? 'user' : 'environment';
   openCamera();
 }
-function toggleDistortion() {
-  const modes = ['auto', 'barrel', 'none'];
-  const idx = modes.indexOf(distortionMode);
-  distortionMode = modes[(idx + 1) % modes.length];
-  const labels = { auto:'AUTO (Recomendado)', barrel:'MÁXIMO', none:'DESLIGADO' };
-  document.getElementById('distLabel').textContent = labels[distortionMode];
+
+function toggleCamGrid() {
+  camGridOn = !camGridOn;
+  const frame = document.getElementById('camFrame');
+  if(camGridOn) {
+    frame.style.backgroundImage = 'linear-gradient(rgba(0,230,118,0.15) 1px,transparent 1px),linear-gradient(90deg,rgba(0,230,118,0.15) 1px,transparent 1px)';
+    frame.style.backgroundSize = '33.3% 33.3%';
+    document.getElementById('gridLabel').textContent = 'GRADE✓';
+  } else {
+    frame.style.backgroundImage = 'none';
+    document.getElementById('gridLabel').textContent = 'GRADE';
+  }
 }
-function toggleCamMode() { camMode = camMode === 'wide' ? 'square' : 'wide'; updateCamLabel(); }
+
 function updateCamLabel() {
   const facing = camFacing === 'environment' ? 'TRASEIRA' : 'FRONTAL';
-  document.getElementById('camLabel').textContent = `📷 ${facing} • TELA CHEIA`;
+  document.getElementById('camLabel').textContent = `📷 ${facing} • APONTE PARA A TELA DO PC`;
 }
+
 function closeCamera() {
   if(videoStream) videoStream.getTracks().forEach(t => t.stop());
   document.getElementById('camOverlay').classList.remove('on');
 }
 
-// ==================== CORREÇÃO DE DISTORÇÃO BARREL (MONITOR CURVO/OVAL) ====================
-function applyBarrelCorrection(srcCanvas, strength) {
-  // Correção de distorção barrel: transforma imagem oval em reta
-  // strength: 0.0 = sem correção, positivo = correção barrel, negativo = pincushion
-  const W = srcCanvas.width, H = srcCanvas.height;
-  const outCanvas = document.getElementById('cvRotate');
-  outCanvas.width = W; outCanvas.height = H;
-  const srcCtx = srcCanvas.getContext('2d');
-  const outCtx = outCanvas.getContext('2d');
-  const srcData = srcCtx.getImageData(0, 0, W, H);
-  const outData = outCtx.createImageData(W, H);
-  const src = srcData.data;
-  const out = outData.data;
-
-  const cx = W / 2, cy = H / 2;
-  const maxR = Math.sqrt(cx*cx + cy*cy);
-  const k1 = strength; // coeficiente de distorção barrel
-
-  for(let y = 0; y < H; y++) {
-    for(let x = 0; x < W; x++) {
-      // Normaliza coordenadas para [-1, 1]
-      const nx = (x - cx) / maxR;
-      const ny = (y - cy) / maxR;
-      const r2 = nx*nx + ny*ny;
-      // Modelo de distorção Brown-Conrady simplificado
-      const factor = 1 + k1 * r2;
-      // Coordenada de origem (mapeamento inverso)
-      const srcX = cx + (nx * factor) * maxR;
-      const srcY = cy + (ny * factor) * maxR;
-
-      // Bilinear interpolation
-      const x0 = Math.floor(srcX), y0 = Math.floor(srcY);
-      const x1 = x0 + 1, y1 = y0 + 1;
-      const fx = srcX - x0, fy = srcY - y0;
-
-      const outIdx = (y * W + x) * 4;
-      if(x0 >= 0 && x1 < W && y0 >= 0 && y1 < H) {
-        for(let c = 0; c < 3; c++) {
-          const tl = src[(y0*W+x0)*4+c];
-          const tr = src[(y0*W+x1)*4+c];
-          const bl = src[(y1*W+x0)*4+c];
-          const br = src[(y1*W+x1)*4+c];
-          out[outIdx+c] = Math.round(
-            tl*(1-fx)*(1-fy) + tr*fx*(1-fy) +
-            bl*(1-fx)*fy    + br*fx*fy
-          );
-        }
-        out[outIdx+3] = 255;
-      } else if(x0 >= 0 && x0 < W && y0 >= 0 && y0 < H) {
-        for(let c = 0; c < 3; c++) out[outIdx+c] = src[(y0*W+x0)*4+c];
-        out[outIdx+3] = 255;
-      } else {
-        out[outIdx] = 10; out[outIdx+1] = 10; out[outIdx+2] = 15; out[outIdx+3] = 255;
-      }
-    }
-  }
-  outCtx.putImageData(outData, 0, 0);
-  return outCanvas;
-}
-
 function shootPhoto() {
   const video = document.getElementById('liveVid');
+  const frame = document.getElementById('camFrame');
   const canvas = document.getElementById('cv');
 
-  // Captura resolução COMPLETA do vídeo (tela cheia)
+  // Dimensões reais do vídeo
   const vW = video.videoWidth || 1920;
   const vH = video.videoHeight || 1080;
-  canvas.width = vW;
-  canvas.height = vH;
+
+  // Calcula a área do frame em relação à tela
+  // O vídeo está em object-fit:cover — precisa calcular o mapeamento real
+  const vidEl = video;
+  const dispW = vidEl.clientWidth;
+  const dispH = vidEl.clientHeight;
+
+  // Escala do vídeo renderizado (cover = preenche tudo, pode cortar)
+  const scaleX = vW / dispW;
+  const scaleY = vH / dispH;
+  // Se cover, a escala usada é a maior (mantém aspecto)
+  const scale = Math.max(scaleX, scaleY);
+
+  // Offset do vídeo renderizado dentro do elemento (centralizado)
+  const rendW = vW / scale;
+  const rendH = vH / scale;
+  const offX = (dispW - rendW) / 2; // negativo se crop
+  const offY = (dispH - rendH) / 2;
+
+  // Posição e tamanho do frame na tela
+  const frameRect = frame.getBoundingClientRect();
+  const vidRect = vidEl.getBoundingClientRect();
+
+  // Posição do frame relativa ao elemento de vídeo
+  const fLeft = frameRect.left - vidRect.left;
+  const fTop = frameRect.top - vidRect.top;
+  const fW = frameRect.width;
+  const fH = frameRect.height;
+
+  // Mapeia para coordenadas no vídeo real
+  const cropX = Math.round((fLeft - offX) * scale);
+  const cropY = Math.round((fTop - offY) * scale);
+  const cropW = Math.round(fW * scale);
+  const cropH = Math.round(fH * scale);
+
+  // Clamp para dentro dos limites do vídeo
+  const safeX = Math.max(0, cropX);
+  const safeY = Math.max(0, cropY);
+  const safeW = Math.min(cropW, vW - safeX);
+  const safeH = Math.min(cropH, vH - safeY);
+
+  canvas.width = safeW;
+  canvas.height = safeH;
   const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0, vW, vH);
+  // Desenha apenas a área do frame = imagem reta sem bordas pretas
+  ctx.drawImage(video, safeX, safeY, safeW, safeH, 0, 0, safeW, safeH);
 
   // Flash
   const flash = document.getElementById('camFlash');
   flash.classList.add('on');
   setTimeout(() => flash.classList.remove('on'), 150);
 
-  // Aplica correção de distorção barrel (monitores curvos causam efeito oval)
-  let finalCanvas = canvas;
-  if(distortionMode !== 'none') {
-    // strength negativo = corrige barrel (imagem que ficou "oval"/"inflada" fica reta)
-    const strength = distortionMode === 'barrel' ? -0.22 : -0.14;
-    finalCanvas = applyBarrelCorrection(canvas, strength);
-  }
-
-  const dataUrl = finalCanvas.toDataURL('image/jpeg', 0.96);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.97);
   imgOrigB64 = dataUrl.split(',')[1];
   imgB64 = imgOrigB64; imgEnhancedB64 = null; isEnhanced = false;
   imgRotation = 0; imgFlippedH = false;
 
-  // Sempre landscape para gráficos
+  // Sempre landscape para gráficos de trading
   imgAspectWide = true;
-  document.getElementById('previewBox').className='preview-box landscape-mode';
-
+  document.getElementById('previewBox').className = 'preview-box landscape-mode';
   document.getElementById('previewImg').style.transform = 'none';
   document.getElementById('previewImg').style.filter = 'none';
   document.getElementById('previewImg').src = dataUrl;
@@ -889,8 +1022,7 @@ function shootPhoto() {
   document.getElementById('enhanceInfo').className = 'enhance-info';
   updateRotateInfo();
   closeCamera();
-  const corrMsg = distortionMode !== 'none' ? ' ✅ Correção barrel aplicada (imagem reta).' : '';
-  setStatus('✅ Foto capturada!' + corrMsg + ' Clique em 🔬 MELHORAR IMAGEM para maior precisão.');
+  setStatus('✅ Foto capturada! Imagem reta (crop do frame). Clique em 🔬 MELHORAR IMAGEM para maior precisão.');
   updateAnalyzeButton();
 }
 
@@ -1378,6 +1510,216 @@ function safeParseJSON(str) {
   catch(e) { return {sinal:'COMPRA',confianca:'BAIXA',probabilidade:55,resumo:'Falha ao interpretar resposta da IA. Tente novamente.',tendencia:'LATERAL'}; }
 }
 
+// ==================== IA APRENDIZAGEM ADAPTATIVA ====================
+let iaLearningOn = false;
+let lastResult = null;
+const IA_STORAGE_KEY = 'trader_ia_memory_v6';
+const IA_MAX_OPS = 2000; // memória extensa
+
+// Estrutura da memória
+let iaMemory = {
+  ops: [],          // array de {ts, metodo, tf, sinal, prob, resultado:'win'|'loss'}
+  methodStats: {},  // { [metodo]: { wins:0, losses:0 } }
+  tfStats: {},      // { [tf]: { wins:0, losses:0 } }
+  signalStats: {},  // { [metodo+'_'+sinal]: { wins:0, losses:0 } }
+  totalWins: 0,
+  totalLosses: 0
+};
+
+function loadIaMemory() {
+  try {
+    const raw = localStorage.getItem(IA_STORAGE_KEY);
+    if(raw) {
+      const parsed = JSON.parse(raw);
+      if(parsed && parsed.ops) iaMemory = parsed;
+    }
+  } catch(e) {}
+}
+
+function saveIaMemory() {
+  try {
+    // Limita a IA_MAX_OPS operações (remove as mais antigas)
+    if(iaMemory.ops.length > IA_MAX_OPS) {
+      iaMemory.ops = iaMemory.ops.slice(-IA_MAX_OPS);
+    }
+    localStorage.setItem(IA_STORAGE_KEY, JSON.stringify(iaMemory));
+  } catch(e) {}
+}
+
+function toggleIaLearn() {
+  const body = document.getElementById('iaLearnBody');
+  const arrow = document.getElementById('iaLearnArrow');
+  const open = body.classList.toggle('open');
+  arrow.textContent = open ? '▲' : '▼';
+  if(open) renderIaPanel();
+}
+
+function toggleIaLearning() {
+  iaLearningOn = !iaLearningOn;
+  const btn = document.getElementById('iaToggleBtn');
+  const dot = document.getElementById('iaStatusDot');
+  const txt = document.getElementById('iaStatusTxt');
+  if(iaLearningOn) {
+    btn.textContent = '🧠 DESLIGAR IA';
+    btn.className = 'ia-toggle-btn on';
+    dot.className = 'ia-status-dot active';
+    txt.textContent = `IA ativa! Analise e registre resultados para aprender.`;
+  } else {
+    btn.textContent = '🧠 LIGAR IA';
+    btn.className = 'ia-toggle-btn off';
+    dot.className = 'ia-status-dot';
+    txt.textContent = 'IA desligada — ligue para iniciar aprendizagem';
+  }
+  renderIaPanel();
+}
+
+function registrarResultado(resultado) {
+  if(!lastResult) return;
+  const op = {
+    ts: Date.now(),
+    metodo: lastResult.metodo,
+    tf: lastResult.tf,
+    sinal: lastResult.sinal,
+    prob: lastResult.prob,
+    resultado
+  };
+
+  // Registra nos stats
+  const m = op.metodo;
+  if(!iaMemory.methodStats[m]) iaMemory.methodStats[m] = { wins:0, losses:0 };
+  if(!iaMemory.tfStats[op.tf]) iaMemory.tfStats[op.tf] = { wins:0, losses:0 };
+  const sk = m + '_' + op.sinal;
+  if(!iaMemory.signalStats[sk]) iaMemory.signalStats[sk] = { wins:0, losses:0 };
+
+  if(resultado === 'win') {
+    iaMemory.methodStats[m].wins++;
+    iaMemory.tfStats[op.tf].wins++;
+    iaMemory.signalStats[sk].wins++;
+    iaMemory.totalWins++;
+  } else {
+    iaMemory.methodStats[m].losses++;
+    iaMemory.tfStats[op.tf].losses++;
+    iaMemory.signalStats[sk].losses++;
+    iaMemory.totalLosses++;
+  }
+  iaMemory.ops.push(op);
+  saveIaMemory();
+  lastResult = null;
+
+  // Desabilitar botões após registro
+  document.getElementById('btnGanhou').disabled = true;
+  document.getElementById('btnErrou').disabled = true;
+
+  // Feedback visual
+  const msg = resultado === 'win' ? '✅ Ganho registrado! IA aprendendo...' : '❌ Loss registrado! IA ajustando...';
+  document.getElementById('iaAdaptMsg').textContent = msg;
+  setTimeout(() => { document.getElementById('iaAdaptMsg').textContent = ''; }, 3000);
+
+  renderIaPanel();
+}
+
+function getMethodWinRate(m) {
+  const s = iaMemory.methodStats[m];
+  if(!s) return null;
+  const total = s.wins + s.losses;
+  if(total === 0) return null;
+  return { rate: s.wins / total, wins: s.wins, losses: s.losses, total };
+}
+
+function getBestMethod() {
+  let best = null, bestRate = -1;
+  for(const [m, s] of Object.entries(iaMemory.methodStats)) {
+    const total = s.wins + s.losses;
+    if(total < 3) continue; // mínimo 3 ops para considerar
+    const rate = s.wins / total;
+    if(rate > bestRate) { bestRate = rate; best = m; }
+  }
+  return best;
+}
+
+// Adapta o sinal baseado no histórico — se método tem > 60% de loss num sinal, inverte
+function iaAdaptSignal(r) {
+  const m = r.metodo_usado ? selMethod : selMethod;
+  const sk = m + '_' + r.sinal;
+  const stats = iaMemory.signalStats[sk];
+  if(!stats) return { adjusted: false };
+  const total = stats.wins + stats.losses;
+  if(total < 5) return { adjusted: false }; // precisa de ao menos 5 amostras
+  const lossRate = stats.losses / total;
+  if(lossRate > 0.65) {
+    // Mais de 65% de loss nesse sinal+método → inverte
+    const newSinal = r.sinal === 'COMPRA' ? 'VENDA' : 'COMPRA';
+    return {
+      adjusted: true,
+      sinal: newSinal,
+      reason: `${Math.round(lossRate*100)}% loss histórico → invertendo para ${newSinal}`
+    };
+  }
+  return { adjusted: false };
+}
+
+function renderIaPanel() {
+  const total = iaMemory.totalWins + iaMemory.totalLosses;
+  const winRate = total > 0 ? Math.round((iaMemory.totalWins / total) * 100) : null;
+  const bestMethod = getBestMethod();
+
+  document.getElementById('iaTotalOps').textContent = total;
+  document.getElementById('iaWinRate').textContent = winRate !== null ? winRate + '%' : '—';
+  document.getElementById('iaBestMethod').textContent = bestMethod ? (METODOS[bestMethod]?.replace(/[^a-zA-Z ]/g,'').trim().substring(0,10) || bestMethod) : '—';
+
+  // Ranking de métodos
+  const rankEl = document.getElementById('iaMethodRanking');
+  const entries = Object.entries(iaMemory.methodStats)
+    .map(([m, s]) => ({ m, wins: s.wins, losses: s.losses, total: s.wins+s.losses, rate: s.wins/(s.wins+s.losses) }))
+    .filter(e => e.total >= 1)
+    .sort((a,b) => b.rate - a.rate)
+    .slice(0, 8);
+
+  if(entries.length === 0) {
+    rankEl.innerHTML = '<div style="font-size:10px;color:var(--muted2);text-align:center;padding:6px">Sem dados ainda. Analise gráficos e registre resultados!</div>';
+  } else {
+    rankEl.innerHTML = entries.map(e => `
+      <div class="ia-rank-item">
+        <span style="font-size:9px;color:var(--muted2);min-width:80px">${(METODOS[e.m]||e.m).substring(0,14)}</span>
+        <div class="ia-rank-bar"><div class="ia-rank-fill" style="width:${Math.round(e.rate*100)}%"></div></div>
+        <span class="ia-rank-pct">${Math.round(e.rate*100)}%</span>
+        <span style="font-size:8px;color:var(--muted2)">(${e.wins}W/${e.losses}L)</span>
+      </div>`).join('');
+  }
+
+  // Log de operações (últimas 30)
+  const logEl = document.getElementById('iaLog');
+  const recent = [...iaMemory.ops].reverse().slice(0, 30);
+  if(recent.length === 0) {
+    logEl.innerHTML = '<div style="font-size:10px;color:var(--muted2);text-align:center;padding:8px">Nenhuma operação registrada ainda.</div>';
+  } else {
+    logEl.innerHTML = recent.map(op => {
+      const d = new Date(op.ts);
+      const t = `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+      const cls = op.resultado === 'win' ? 'ia-log-win' : 'ia-log-loss';
+      const icon = op.resultado === 'win' ? '✅' : '❌';
+      return `<div class="ia-log-entry">
+        <span style="color:var(--muted)">${t}</span>
+        <span class="${cls}">${icon}</span>
+        <span style="flex:1">${(METODOS[op.metodo]||op.metodo).substring(0,12)}</span>
+        <span style="color:${op.sinal==='COMPRA'?'#00e676':'#ff1744'}">${op.sinal}</span>
+        <span style="color:var(--muted)">${op.tf}</span>
+        <span style="color:var(--muted2)">${op.prob}%</span>
+      </div>`;
+    }).join('');
+  }
+}
+
+function clearIaMemory() {
+  if(!confirm('Tem certeza? Isso apagará toda a memória de aprendizagem da IA.')) return;
+  iaMemory = { ops:[], methodStats:{}, tfStats:{}, signalStats:{}, totalWins:0, totalLosses:0 };
+  saveIaMemory();
+  lastResult = null;
+  document.getElementById('btnGanhou').disabled = true;
+  document.getElementById('btnErrou').disabled = true;
+  renderIaPanel();
+}
+
 // ==================== ANÁLISE PRINCIPAL ====================
 async function doAnalyze() {
   if(!imgB64 || analyzing) return;
@@ -1426,6 +1768,18 @@ function renderResult(r) {
   const prob = Math.max(0, Math.min(100, r.probabilidade || 65));
   const barColor = prob >= 78 ? '#00e676' : (prob >= 63 ? '#ffd600' : '#ff5722');
 
+  // Ajuste de sinal pela IA se ativa
+  let finalSinal = r.sinal;
+  let iaAdaptBadge = '';
+  if(iaLearningOn) {
+    const adapted = iaAdaptSignal(r);
+    if(adapted.adjusted) {
+      finalSinal = adapted.sinal;
+      r.sinal = finalSinal;
+      iaAdaptBadge = `<div class="ia-adapt-badge">🧠 IA Adaptou: ${adapted.reason}</div>`;
+    }
+  }
+
   // Barras de confiança
   const confBars = prob >= 78 ? 3 : (prob >= 63 ? 2 : 1);
   const barColorClass = prob >= 78 ? 'lit-green' : (prob >= 63 ? 'lit-yellow' : 'lit-red');
@@ -1436,11 +1790,20 @@ function renderResult(r) {
   const padrao = r.padrao ? `<div style="margin-top:8px;font-size:10px;color:var(--muted2)">📐 Padrão: <strong style="color:${mc}">${r.padrao}</strong></div>` : '';
   const enhancedBadge = (isEnhanced || r._enhanced) ? '<span style="font-size:9px;color:#00e676;background:rgba(0,230,118,0.1);padding:3px 8px;border-radius:6px;border:1px solid rgba(0,230,118,0.2)">🔬 Img. Melhorada</span>' : '';
 
+  // Guardar último resultado para feedback
+  lastResult = { sinal: finalSinal, metodo: selMethod, tf: selTf, prob, timestamp: Date.now() };
+  // Habilitar botões de feedback se IA ativa
+  const feedbackHtml = `
+    <div class="result-feedback">
+      <button class="btn-ganhou" onclick="registrarResultado('win')">✅ GANHOU</button>
+      <button class="btn-errou" onclick="registrarResultado('loss')">❌ ERROU</button>
+    </div>`;
+
   const html = `
     <div class="result-card">
       <div class="final-signal" style="background:linear-gradient(135deg,${bg1},${bg2});border:1.5px solid ${mc};">
         <div style="font-size:52px;margin-bottom:4px">${isUp ? '🟢' : '🔴'}</div>
-        <div style="font-family:'Rajdhani',sans-serif;font-size:44px;font-weight:800;letter-spacing:5px;color:${mc}">${r.sinal}</div>
+        <div style="font-family:'Rajdhani',sans-serif;font-size:44px;font-weight:800;letter-spacing:5px;color:${mc}">${finalSinal}</div>
         <div style="font-size:11px;color:var(--muted2);margin:8px 0 4px">
           Confiança: <strong style="color:${mc}">${r.confianca}</strong> &nbsp;•&nbsp; Probabilidade: <strong style="color:${mc}">${prob}%</strong>
         </div>
@@ -1450,6 +1813,7 @@ function renderResult(r) {
         </div>
         <div style="padding:10px 14px;background:rgba(0,0,0,.35);border-radius:10px;font-size:11px;font-weight:500;line-height:1.6;text-align:left">${r.resumo || 'Análise concluída.'}</div>
         ${padrao}
+        ${iaAdaptBadge}
         <div style="margin-top:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
           <span style="font-size:10px;color:var(--cyan);background:rgba(0,176,255,0.1);padding:4px 10px;border-radius:6px;border:1px solid rgba(0,176,255,0.2)">⚙️ ${r.metodo_usado || METODOS[selMethod]}</span>
           <span style="font-size:10px;color:var(--muted2);background:rgba(255,255,255,0.05);padding:4px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.08)">⏱️ ${selTf}</span>
@@ -1457,11 +1821,15 @@ function renderResult(r) {
           ${enhancedBadge}
         </div>
       </div>
-      <div class="ai-note"><strong>⚠️ Aviso de Risco:</strong> Análise gerada por processamento de imagem para fins educacionais. Nunca opere sem gerenciamento de risco e análise própria. Resultados passados não garantem resultados futuros. Opere com responsabilidade.</div>
+      <div class="ai-note"><strong>⚠️ Aviso de Risco:</strong> Análise para fins educacionais. Nunca opere sem gerenciamento de risco. Resultados passados não garantem resultados futuros.</div>
+      ${feedbackHtml}
     </div>
   `;
   document.getElementById('resultSection').innerHTML = html;
   document.getElementById('resultSection').scrollIntoView({ behavior:'smooth', block:'nearest' });
+  // Habilitar botões de feedback no painel IA
+  document.getElementById('btnGanhou').disabled = false;
+  document.getElementById('btnErrou').disabled = false;
 }
 </script>
 </body>
