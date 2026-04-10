@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
-<title>TRADER PHOTO I.A PRO v8 - IA Adaptativa</title>
+<title>TRADER PHOTO I.A PRO v9 - IA Adaptativa</title>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -99,11 +99,44 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
 
 /* PREVIEW */
 .preview-zone{margin:10px 14px 0}
-.preview-box{width:100%;background:var(--panel);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;min-height:180px;transition:all .3s}
-.preview-box.landscape-mode{aspect-ratio:16/9}
-.preview-box.portrait-mode{aspect-ratio:4/3}
-.preview-box img{width:100%;height:100%;object-fit:contain;display:none;transition:filter .3s ease}
-.preview-placeholder{display:flex;flex-direction:column;align-items:center;gap:10px;color:var(--muted2);padding:30px}
+.preview-box{
+  width:100%;
+  background:var(--panel);
+  border:1.5px solid var(--border);
+  border-radius:14px;
+  overflow:hidden;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:all .3s;
+}
+.preview-box.has-image{
+  /* Remove aspect-ratio fixo — deixa a imagem definir a altura */
+  aspect-ratio:unset;
+  min-height:unset;
+  padding:0;
+}
+.preview-box.landscape-mode{aspect-ratio:16/9;min-height:180px}
+.preview-box.portrait-mode{aspect-ratio:4/3;min-height:180px}
+/* Quando tem imagem: sem aspect-ratio forçado */
+.preview-box.has-image.landscape-mode,
+.preview-box.has-image.portrait-mode{
+  aspect-ratio:unset;
+  min-height:unset;
+}
+.preview-box img{
+  display:none;
+  width:100%;
+  height:auto;
+  max-width:100%;
+  object-fit:unset;
+  border-radius:12px;
+  transition:filter .3s ease;
+  /* Garante que a imagem rotacionada via CSS não seja cortada */
+  transform-origin:center center;
+}
+.preview-placeholder{display:flex;flex-direction:column;align-items:center;gap:10px;color:var(--muted2);padding:30px;min-height:180px;justify-content:center}
 
 /* CONTROLES DE IMAGEM */
 .img-controls{display:none;padding:8px 14px;gap:6px;flex-wrap:wrap}
@@ -371,10 +404,10 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
       <div class="logo-hex">📊</div>
       <div>
         <div class="logo-name">TRADER PHOTO I.A</div>
-        <div class="logo-tag">IA Adaptativa v8 • 16 Métodos • 9 Modos • Câmera Gráfico</div>
+        <div class="logo-tag">IA Adaptativa v9 • 16 Métodos • 9 Modos • Preview Gráfico Perfeito</div>
       </div>
     </div>
-    <div class="pro-badge">PRO v8</div>
+    <div class="pro-badge">PRO v9</div>
   </div>
   <div class="header-live">
     <div class="live-dot"></div>
@@ -590,7 +623,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
 </div>
 
 <div id="resultSection"></div>
-<div class="footer-note">TRADER PHOTO I.A PRO v8 • Câmera Gráfico Corrigida • IA Adaptativa v3+v7 • 16 Métodos • 9 Modos</div>
+<div class="footer-note">TRADER PHOTO I.A PRO v9 • Preview Gráfico Perfeito • IA Adaptativa v3+v7 • 16 Métodos • 9 Modos</div>
 </div></div>
 
 <script>
@@ -852,11 +885,15 @@ function shootPhoto() {
 
   // Sempre landscape para gráficos
   imgAspectWide = true;
-  document.getElementById('previewBox').className = 'preview-box landscape-mode';
-  document.getElementById('previewImg').style.transform = 'none';
-  document.getElementById('previewImg').style.filter = 'none';
-  document.getElementById('previewImg').src = dataUrl;
-  document.getElementById('previewImg').style.display = 'block';
+  const previewBox = document.getElementById('previewBox');
+  const previewImg = document.getElementById('previewImg');
+  previewBox.className = 'preview-box has-image landscape-mode';
+  previewImg.style.transform = 'none';
+  previewImg.style.filter = 'none';
+  previewImg.style.width = '100%';
+  previewImg.style.height = 'auto';
+  previewImg.src = dataUrl;
+  previewImg.style.display = 'block';
   document.getElementById('ph').style.display = 'none';
   document.getElementById('imgControls').classList.add('visible');
   document.getElementById('rotateInfo').style.display = 'flex';
@@ -881,18 +918,21 @@ function handleFile(input) {
     imgRotation = 0; imgFlippedH = false;
     const tmpImg = new Image();
     tmpImg.onload = () => {
+      const previewBox = document.getElementById('previewBox');
       if(tmpImg.width > tmpImg.height * 1.2) {
         imgAspectWide=true;
-        document.getElementById('previewBox').className='preview-box landscape-mode';
+        previewBox.className='preview-box has-image landscape-mode';
       } else {
         imgAspectWide=false;
-        document.getElementById('previewBox').className='preview-box portrait-mode';
+        previewBox.className='preview-box has-image portrait-mode';
       }
     };
     tmpImg.src = dataUrl;
     document.getElementById('ph').style.display = 'none';
     document.getElementById('previewImg').style.transform = 'none';
     document.getElementById('previewImg').style.filter = 'none';
+    document.getElementById('previewImg').style.width = '100%';
+    document.getElementById('previewImg').style.height = 'auto';
     document.getElementById('previewImg').src = dataUrl;
     document.getElementById('previewImg').style.display = 'block';
     document.getElementById('imgControls').classList.add('visible');
@@ -977,8 +1017,12 @@ function enhanceImage() {
     imgB64 = imgEnhancedB64;
     isEnhanced = true;
 
-    document.getElementById('previewImg').src = enhanced;
-    document.getElementById('previewImg').style.filter = 'none';
+    const previewImg = document.getElementById('previewImg');
+    previewImg.src = enhanced;
+    previewImg.style.transform = 'none';
+    previewImg.style.width = '100%';
+    previewImg.style.height = 'auto';
+    previewImg.style.filter = 'none';
     btn.className = 'btn-enhance enhanced';
     btn.textContent = '✅ IMAGEM MELHORADA';
     btn.disabled = false;
@@ -989,20 +1033,55 @@ function enhanceImage() {
 }
 
 // ==================== ROTAÇÃO ====================
-function rotateImage(deg) { imgRotation = (imgRotation + deg + 360) % 360; applyTransform(); rebakeImage(); }
+function rotateImage(deg) { imgRotation = (imgRotation + deg + 360) % 360; applyTransform(); }
 function flipImage(axis) {
   if(axis === 'h') { imgFlippedH = !imgFlippedH; document.getElementById('btnFlipH').classList.toggle('active-ctrl', imgFlippedH); }
-  applyTransform(); rebakeImage();
+  applyTransform();
 }
 function applyTransform() {
-  let t = `rotate(${imgRotation}deg)`;
+  // Para visualização, usamos CSS transform mas ajustamos o container
+  const img = document.getElementById('previewImg');
+  const box = document.getElementById('previewBox');
+  const rot = imgRotation % 360;
+  let t = `rotate(${rot}deg)`;
   if(imgFlippedH) t += ' scaleX(-1)';
-  document.getElementById('previewImg').style.transform = t;
+
+  // Para 90° e 270° precisamos ajustar o layout para não cortar
+  if(rot === 90 || rot === 270) {
+    // A imagem vira: largura vira altura e vice-versa
+    // Usamos um wrapper trick: deixa img com transform e ajusta o tamanho do container
+    img.style.transform = t;
+    img.style.width = '100%';
+    img.style.height = 'auto';
+    // Força o container a ter proporção invertida via padding-bottom
+    box.style.overflow = 'hidden';
+  } else {
+    img.style.transform = t;
+    img.style.width = '100%';
+    img.style.height = 'auto';
+    box.style.overflow = 'hidden';
+  }
   updateRotateInfo();
+  // rebakeImage faz o encode correto para a IA
+  rebakeImage();
+}
+
+function applyTransformDisplay() {
+  // Após rebake, atualiza o src do preview com a imagem já rotacionada
+  // para exibição limpa sem corte visual
+  const base = imgB64;
+  if(!base) return;
+  const img = document.getElementById('previewImg');
+  img.style.transform = 'none';
+  img.style.width = '100%';
+  img.style.height = 'auto';
+  img.src = `data:image/jpeg;base64,${base}`;
 }
 function toggleAspect() {
   imgAspectWide = !imgAspectWide;
-  document.getElementById('previewBox').className = 'preview-box ' + (imgAspectWide ? 'landscape-mode' : 'portrait-mode');
+  const box = document.getElementById('previewBox');
+  const hasImg = imgB64 ? 'has-image ' : '';
+  box.className = 'preview-box ' + hasImg + (imgAspectWide ? 'landscape-mode' : 'portrait-mode');
   updateRotateInfo();
 }
 function updateRotateInfo() {
@@ -1027,7 +1106,15 @@ function rebakeImage() {
     if(imgFlippedH) ctx.scale(-1,1);
     ctx.drawImage(tmpImg, -W/2, -H/2, W, H);
     ctx.restore();
-    imgB64 = canvas.toDataURL('image/jpeg', 0.95).split(',')[1];
+    const bakedUrl = canvas.toDataURL('image/jpeg', 0.95);
+    imgB64 = bakedUrl.split(',')[1];
+    // Atualiza o preview com a imagem já rotacionada (sem CSS transform = sem corte)
+    const previewImg = document.getElementById('previewImg');
+    previewImg.style.transform = 'none';
+    previewImg.style.width = '100%';
+    previewImg.style.height = 'auto';
+    previewImg.src = bakedUrl;
+    updateRotateInfo();
   };
   tmpImg.src = src;
 }
@@ -1039,6 +1126,8 @@ function resetAll() {
   document.getElementById('previewImg').style.display = 'none';
   document.getElementById('previewImg').style.transform = 'none';
   document.getElementById('previewImg').style.filter = 'none';
+  document.getElementById('previewImg').style.width = '100%';
+  document.getElementById('previewImg').style.height = 'auto';
   document.getElementById('ph').style.display = 'flex';
   document.getElementById('imgControls').classList.remove('visible');
   document.getElementById('rotateInfo').style.display = 'none';
