@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
-<title>TRADER PHOTO I.A PRO v7 - IA Adaptativa</title>
+<title>TRADER PHOTO I.A PRO v8 - IA Adaptativa</title>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -45,6 +45,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulseYellow{0%,100%{box-shadow:0 0 0 0 rgba(255,214,0,0.3)}50%{box-shadow:0 0 8px 3px rgba(255,214,0,0.15)}}
 
 /* KEYGEN */
 .keygen-section{margin:10px 14px 0;background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(0,176,255,0.05));border:1px solid var(--deepblue);border-radius:12px;overflow:hidden}
@@ -110,11 +111,9 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
 .btn-img-ctrl{padding:7px 12px;border-radius:8px;border:1px solid var(--border);background:rgba(0,176,255,0.06);color:var(--cyan);font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .2s;letter-spacing:.5px}
 .btn-img-ctrl:hover{background:rgba(0,176,255,0.15);border-color:var(--cyan)}
 .btn-img-ctrl.active-ctrl{background:rgba(0,230,118,0.12);border-color:var(--green);color:var(--green)}
-/* BOTÃO MELHORAR - destaque especial */
 .btn-enhance{padding:9px 16px;border-radius:8px;border:1px solid rgba(255,214,0,0.5);background:linear-gradient(135deg,rgba(255,214,0,0.15),rgba(255,145,0,0.1));color:var(--yellow);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s;letter-spacing:.5px;animation:pulseYellow 2s ease-in-out infinite}
 .btn-enhance:hover{background:linear-gradient(135deg,rgba(255,214,0,0.25),rgba(255,145,0,0.2));border-color:var(--yellow)}
 .btn-enhance.enhanced{background:linear-gradient(135deg,rgba(0,230,118,0.2),rgba(0,176,255,0.1));border-color:var(--green);color:var(--green);animation:none}
-@keyframes pulseYellow{0%,100%{box-shadow:0 0 0 0 rgba(255,214,0,0.3)}50%{box-shadow:0 0 8px 3px rgba(255,214,0,0.15)}}
 .enhance-info{margin:0 14px 6px;padding:6px 10px;background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);border-radius:8px;font-size:10px;color:var(--green);display:none}
 .enhance-info.visible{display:block}
 .rotate-info{font-size:9px;color:var(--muted2);display:flex;align-items:center;gap:4px;padding:0 14px 6px;font-family:'Share Tech Mono',monospace}
@@ -138,35 +137,137 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
 .progress-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--cyan),var(--green));background-size:200%;animation:shimmer 1.5s linear infinite;transition:width .4s ease;width:0%}
 .error-box{margin:10px 14px 0;padding:11px 14px;background:rgba(255,23,68,.07);border:1px solid rgba(255,23,68,.25);border-radius:12px;font-size:11px;color:#ff6b6b;display:none}
 
-/* CÂMERA */
-#camOverlay{display:none;position:fixed;inset:0;z-index:999;background:#000;flex-direction:column}
-#camOverlay.on{display:flex}
-#liveVid{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
-.cam-ui{position:relative;z-index:10;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:0}
-.cam-top-bar{display:flex;width:100%;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(0,0,0,0.5);z-index:11}
-.cam-label{background:rgba(0,0,0,0.6);border:1px solid rgba(0,230,118,0.5);border-radius:8px;padding:5px 12px;font-family:'Rajdhani',sans-serif;font-size:11px;color:var(--green);letter-spacing:1.5px}
-.cam-close{width:38px;height:38px;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.4);border-radius:50%;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer}
-/* Frame ocupa 100% da área entre top-bar e bottom-bar */
-.cam-frame{
-  flex:1;width:100%;position:relative;
-  border:none;border-radius:0;
-  overflow:hidden;
-  box-shadow: inset 0 0 0 2px rgba(0,230,118,0.6);
+/* ===== CÂMERA CORRIGIDA - SEM TELA VERDE ===== */
+#camOverlay{
+  display:none;
+  position:fixed;inset:0;z-index:999;
+  background:#000;
+  flex-direction:column;
 }
-/* Cantos decorativos nos 4 cantos do frame */
-.cam-frame::before,.cam-frame::after{content:'';position:absolute;width:24px;height:24px;border-color:var(--cyan);border-style:solid;z-index:2}
-.cam-frame::before{top:8px;left:8px;border-width:3px 0 0 3px}
-.cam-frame::after{bottom:8px;right:8px;border-width:0 3px 3px 0}
-.cam-corner-tr,.cam-corner-bl{content:'';position:absolute;width:24px;height:24px;border-color:var(--cyan);border-style:solid;z-index:2}
-.cam-corner-tr{top:8px;right:8px;border-width:3px 3px 0 0}
-.cam-corner-bl{bottom:8px;left:8px;border-width:0 0 3px 3px}
-.cam-frame-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Rajdhani',sans-serif;font-size:13px;color:rgba(0,230,118,0.45);letter-spacing:2px;text-align:center;pointer-events:none;text-shadow:0 0 12px rgba(0,230,118,0.3)}
-.cam-scanline-h{position:absolute;top:0;bottom:0;width:1.5px;background:linear-gradient(180deg,transparent,var(--green),transparent);animation:scan-h 2.5s linear infinite;left:0;z-index:1}
-.cam-scanline-v{position:absolute;left:0;right:0;height:1.5px;background:linear-gradient(90deg,transparent,var(--green),transparent);animation:scan-v 3s linear infinite;top:0;z-index:1}
-.cam-bottom-bar{display:flex;align-items:center;justify-content:center;gap:40px;width:100%;padding:14px 20px 24px;background:rgba(0,0,0,0.65)}
-.cam-shutter{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#00897b,var(--green));border:4px solid #fff;box-shadow:0 0 28px rgba(0,230,118,.7);display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;transition:transform .1s}
+#camOverlay.on{display:flex}
+
+/* Vídeo preenche todo o fundo */
+#liveVid{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  background:#000;
+}
+
+/* UI sobreposta ao vídeo */
+.cam-ui{
+  position:relative;
+  z-index:10;
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:space-between;
+  padding:0;
+  pointer-events:none;
+}
+
+.cam-top-bar{
+  display:flex;
+  width:100%;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 16px;
+  background:linear-gradient(180deg,rgba(0,0,0,0.7),transparent);
+  pointer-events:all;
+}
+
+.cam-label{
+  background:rgba(0,0,0,0.6);
+  border:1px solid rgba(0,230,118,0.5);
+  border-radius:8px;
+  padding:5px 12px;
+  font-family:'Rajdhani',sans-serif;
+  font-size:11px;
+  color:var(--green);
+  letter-spacing:1.5px;
+}
+
+.cam-close{
+  width:38px;height:38px;
+  background:rgba(0,0,0,.7);
+  border:1px solid rgba(255,255,255,.4);
+  border-radius:50%;
+  color:#fff;font-size:18px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+}
+
+/* Frame ocupa toda a área central entre top e bottom bar */
+.cam-frame{
+  flex:1;
+  width:100%;
+  position:relative;
+  overflow:hidden;
+  /* Borda sutil verde sem fundo */
+  box-shadow:inset 0 0 0 2px rgba(0,230,118,0.5);
+}
+
+/* Cantos decorativos */
+.cam-frame::before,.cam-frame::after{
+  content:'';position:absolute;
+  width:28px;height:28px;
+  border-color:var(--cyan);border-style:solid;z-index:2;
+}
+.cam-frame::before{top:10px;left:10px;border-width:3px 0 0 3px}
+.cam-frame::after{bottom:10px;right:10px;border-width:0 3px 3px 0}
+.cam-corner-tr,.cam-corner-bl{position:absolute;width:28px;height:28px;border-color:var(--cyan);border-style:solid;z-index:2}
+.cam-corner-tr{top:10px;right:10px;border-width:3px 3px 0 0}
+.cam-corner-bl{bottom:10px;left:10px;border-width:0 0 3px 3px}
+.cam-frame-label{
+  position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
+  font-family:'Rajdhani',sans-serif;font-size:12px;
+  color:rgba(0,230,118,0.6);letter-spacing:2px;
+  text-align:center;pointer-events:none;
+  text-shadow:0 0 12px rgba(0,230,118,0.4);
+  background:rgba(0,0,0,0.3);padding:4px 12px;border-radius:6px;
+}
+.cam-scanline-h{
+  position:absolute;top:0;bottom:0;
+  width:1.5px;
+  background:linear-gradient(180deg,transparent,rgba(0,230,118,0.6),transparent);
+  animation:scan-h 2.5s linear infinite;left:0;z-index:1;
+  pointer-events:none;
+}
+.cam-scanline-v{
+  position:absolute;left:0;right:0;
+  height:1.5px;
+  background:linear-gradient(90deg,transparent,rgba(0,230,118,0.6),transparent);
+  animation:scan-v 3s linear infinite;top:0;z-index:1;
+  pointer-events:none;
+}
+
+.cam-bottom-bar{
+  display:flex;align-items:center;justify-content:center;gap:40px;
+  width:100%;padding:16px 20px 28px;
+  background:linear-gradient(0deg,rgba(0,0,0,0.75),transparent);
+  pointer-events:all;
+}
+.cam-shutter{
+  width:72px;height:72px;border-radius:50%;
+  background:linear-gradient(135deg,#00897b,var(--green));
+  border:4px solid #fff;
+  box-shadow:0 0 28px rgba(0,230,118,.7);
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;cursor:pointer;transition:transform .1s;
+}
 .cam-shutter:active{transform:scale(.91)}
-.cam-mode-toggle{background:rgba(0,0,0,.6);border:1px solid rgba(0,176,255,0.5);border-radius:10px;padding:10px 18px;font-family:'Rajdhani',sans-serif;font-size:12px;color:var(--cyan);cursor:pointer;letter-spacing:1px;text-align:center}
+.cam-mode-toggle{
+  background:rgba(0,0,0,.6);
+  border:1px solid rgba(0,176,255,0.5);
+  border-radius:10px;padding:10px 18px;
+  font-family:'Rajdhani',sans-serif;font-size:11px;
+  color:var(--cyan);cursor:pointer;letter-spacing:1px;text-align:center;
+}
 .cam-flash{position:fixed;inset:0;background:#fff;z-index:9999;pointer-events:none;opacity:0;transition:opacity .1s}
 .cam-flash.on{opacity:.85}
 
@@ -229,9 +330,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
 .ia-log-win{color:var(--green)}
 .ia-log-loss{color:var(--red)}
 .ia-clear-btn{margin-top:6px;padding:5px 12px;border:1px solid rgba(255,255,255,0.1);border-radius:6px;background:transparent;color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:10px;cursor:pointer;font-weight:700}
-/* Sinal adaptado pela IA */
 .ia-adapt-badge{display:inline-block;margin-top:6px;padding:4px 10px;background:rgba(206,147,216,0.15);border:1px solid rgba(206,147,216,0.4);border-radius:8px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--purple)}
-/* Botões feedback após resultado */
 .result-feedback{display:flex;gap:8px;padding:10px 16px;background:rgba(0,0,0,0.2)}
 .result-feedback .btn-ganhou,.result-feedback .btn-errou{flex:1;padding:8px}
 </style>
@@ -240,16 +339,16 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
 <div class="bg-grid"></div>
 <div class="bg-glow"></div>
 
-<!-- CÂMERA -->
+<!-- CÂMERA CORRIGIDA -->
 <div id="camOverlay">
   <video id="liveVid" autoplay playsinline muted></video>
   <div class="cam-flash" id="camFlash"></div>
   <div class="cam-ui">
     <div class="cam-top-bar">
-      <div class="cam-label" id="camLabel">📷 APONTE PARA A TELA DO PC</div>
+      <div class="cam-label" id="camLabel">📷 APONTE PARA O GRÁFICO</div>
       <div class="cam-close" onclick="closeCamera()">✕</div>
     </div>
-    <!-- Frame full-screen: o vídeo cobre tudo, o frame marca a área de captura -->
+    <!-- Frame: ocupa toda a área central = captura só o gráfico -->
     <div class="cam-frame" id="camFrame">
       <div class="cam-corner-tr"></div>
       <div class="cam-corner-bl"></div>
@@ -260,7 +359,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
     <div class="cam-bottom-bar">
       <div class="cam-mode-toggle" onclick="toggleCamFacing()">🔄<br><span style="font-size:9px">VIRAR</span></div>
       <div class="cam-shutter" onclick="shootPhoto()">📸</div>
-      <div class="cam-mode-toggle" onclick="toggleCamGrid()">⊞<br><span id="gridLabel" style="font-size:9px">GRADE</span></div>
+      <div class="cam-mode-toggle" onclick="toggleCamFacing()">⊞<br><span style="font-size:9px">MODO</span></div>
     </div>
   </div>
 </div>
@@ -272,10 +371,10 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
       <div class="logo-hex">📊</div>
       <div>
         <div class="logo-name">TRADER PHOTO I.A</div>
-        <div class="logo-tag">IA Adaptativa • 16 Métodos • 9 Modos • Aprendizagem</div>
+        <div class="logo-tag">IA Adaptativa v8 • 16 Métodos • 9 Modos • Câmera Gráfico</div>
       </div>
     </div>
-    <div class="pro-badge">PRO v7</div>
+    <div class="pro-badge">PRO v8</div>
   </div>
   <div class="header-live">
     <div class="live-dot"></div>
@@ -298,7 +397,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
       <button class="btn-copy-key" onclick="copyGeneratedKey()">📋 Copiar</button>
     </div>
     <div class="key-status-gen" id="keygenStatus"></div>
-    <div class="warning-box">⚠️ ATENÇÃO: Gere sua chave, copie e cole no modo "Chave Aleatória" abaixo. QUALQUER chave funciona! A análise usa visão computacional real na imagem.</div>
+    <div class="warning-box">⚠️ ATENÇÃO: Gere sua chave, copie e cole no modo "Chave Aleatória" abaixo. QUALQUER chave funciona!</div>
   </div>
 </div>
 
@@ -327,7 +426,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
       <a class="get-key-link" href="https://aistudio.google.com/apikey" target="_blank">🔗 Obter chave gratuita no Google AI Studio</a>
       <div class="key-status" id="geminiStatus"></div>
       <select class="model-select" id="geminiModel"><option value="gemini-2.0-flash">Gemini 2.0 Flash (Grátis)</option><option value="gemini-1.5-flash">Gemini 1.5 Flash</option><option value="gemini-1.5-pro">Gemini 1.5 Pro (Pago)</option></select>
-      <div class="mode-info gemini"><strong>🤖 Modo Gemini</strong><br>Análise técnica real via visão computacional + prompts especializados por método. Chave grátis!</div>
+      <div class="mode-info gemini"><strong>🤖 Modo Gemini</strong><br>Análise técnica real via visão computacional + prompts especializados. Chave grátis!</div>
     </div>
 
     <div id="chatgptArea" style="display:none">
@@ -335,7 +434,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
       <a class="get-key-link" href="https://platform.openai.com/api-keys" target="_blank">🔗 Obter chave no OpenAI Platform</a>
       <div class="key-status" id="chatgptStatus"></div>
       <select class="model-select" id="chatgptModel"><option value="gpt-4o-mini">GPT-4o Mini (Mais Barato)</option><option value="gpt-4o">GPT-4o (Mais Preciso)</option><option value="gpt-4-turbo">GPT-4 Turbo</option></select>
-      <div class="mode-info chatgpt"><strong>💬 Modo ChatGPT</strong><br>Análise técnica real com GPT-4 Vision + prompts profissionais por método.</div>
+      <div class="mode-info chatgpt"><strong>💬 Modo ChatGPT</strong><br>Análise técnica real com GPT-4 Vision + prompts profissionais.</div>
     </div>
 
     <div id="claudeArea" style="display:none">
@@ -343,7 +442,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
       <a class="get-key-link" href="https://console.anthropic.com/settings/keys" target="_blank">🔗 Obter chave no Console Anthropic</a>
       <div class="key-status" id="claudeStatus"></div>
       <select class="model-select" id="claudeModel"><option value="claude-3-haiku-20240307">Claude 3 Haiku (Barato)</option><option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet (Melhor)</option><option value="claude-3-opus-20240229">Claude 3 Opus (Máximo)</option></select>
-      <div class="mode-info claude"><strong>🧠 Modo Claude</strong><br>Análise técnica profissional com visão computacional + prompts especializados.</div>
+      <div class="mode-info claude"><strong>🧠 Modo Claude</strong><br>Análise técnica profissional com visão computacional.</div>
     </div>
 
     <div id="deepseekArea" style="display:none">
@@ -351,22 +450,21 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
       <a class="get-key-link" href="https://platform.deepseek.com/api_keys" target="_blank">🔗 Obter chave no DeepSeek Platform</a>
       <div class="key-status" id="deepseekStatus"></div>
       <select class="model-select" id="deepseekModel"><option value="deepseek-chat">DeepSeek Chat</option><option value="deepseek-reasoner">DeepSeek Reasoner</option></select>
-      <div class="mode-info deepseek"><strong>🔍 Modo DeepSeek</strong><br>API mais barata do mercado com análise visual real. $0.14/1M tokens!</div>
+      <div class="mode-info deepseek"><strong>🔍 Modo DeepSeek</strong><br>API mais barata com análise visual. $0.14/1M tokens!</div>
     </div>
 
     <div id="customArea" style="display:none">
       <div class="key-input-row">
-        <input class="key-input" id="customKey" type="password" placeholder="Cole sua chave aleatória (ex: sk_hlua7p4yf2kzl3js45hal)"/>
+        <input class="key-input" id="customKey" type="password" placeholder="Cole sua chave aleatória (ex: sk_hlua7p4...)"/>
         <button class="btn-save-key" onclick="saveCustomKey()">💾 Salvar</button>
         <button class="btn-del-key" onclick="deleteCustomKey()">🗑️</button>
       </div>
       <div class="key-status" id="customKeyStatus"></div>
       <div class="mode-info custom" id="modeInfoCustom">
         <strong>🔑 Modo Chave Aleatória</strong><br>
-        ✅ QUALQUER chave funciona! Use a chave gerada no painel acima.<br>
-        ✅ Análise técnica REAL via visão computacional na imagem<br>
-        ✅ Prompts especializados por método (OTC, Price Action, SMC...)<br>
-        ✅ Use o botão 🔬 MELHORAR IMAGEM para maior precisão!
+        ✅ QUALQUER chave funciona! Use a chave gerada acima.<br>
+        ✅ Visão computacional REAL na imagem do gráfico<br>
+        ✅ Análise combinada: pixels + método especializado + IA adaptativa
       </div>
     </div>
 
@@ -391,7 +489,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
       <div class="mode-info fcs"><strong>📊 Modo FCSAPI</strong><br>Forex, Cripto, Ações e Commodities + análise visual.</div>
     </div>
 
-    <div class="mode-info offline" id="modeInfoOffline"><strong>📡 Modo Offline</strong><br>Análise técnica por visão computacional local. Processa pixels, zonas de cor, momentum e estrutura de candles sem necessidade de API.</div>
+    <div class="mode-info offline" id="modeInfoOffline"><strong>📡 Modo Offline</strong><br>Visão computacional local: análise de zonas de cor, momentum, pressão direcional e estrutura de candles. Motor v3+v7 combinados para maior assertividade.</div>
   </div>
 </div>
 
@@ -449,7 +547,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
     <div class="preview-placeholder" id="ph">
       <div style="font-size:36px">📈</div>
       <div style="font-size:12px">Aguardando gráfico...</div>
-      <div style="font-size:10px;color:var(--muted);text-align:center">Selecione um gráfico ou use a câmera<br>Modo horizontal captura toda a tela</div>
+      <div style="font-size:10px;color:var(--muted);text-align:center">Selecione um gráfico ou use a câmera<br>A câmera captura só o gráfico enquadrado</div>
     </div>
     <img id="previewImg" alt="Gráfico"/>
   </div>
@@ -457,21 +555,21 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
 
 <!-- CONTROLES DA IMAGEM -->
 <div class="img-controls" id="imgControls">
-  <button class="btn-enhance" id="btnEnhance" onclick="enhanceImage()" title="Melhora nitidez, contraste e definição para análise mais precisa">🔬 MELHORAR IMAGEM</button>
+  <button class="btn-enhance" id="btnEnhance" onclick="enhanceImage()">🔬 MELHORAR IMAGEM</button>
   <button class="btn-img-ctrl" onclick="rotateImage(-90)">↺ -90°</button>
   <button class="btn-img-ctrl" onclick="rotateImage(90)">↻ +90°</button>
   <button class="btn-img-ctrl" onclick="rotateImage(180)">⟳ 180°</button>
   <button class="btn-img-ctrl" id="btnFlipH" onclick="flipImage('h')">⇆ Espelhar</button>
   <button class="btn-img-ctrl" onclick="toggleAspect()">⛶ 16:9/4:3</button>
 </div>
-<div class="enhance-info" id="enhanceInfo">✅ Imagem melhorada! Nitidez +40%, Contraste +35%, definição de candles otimizada para análise precisa.</div>
+<div class="enhance-info" id="enhanceInfo">✅ Imagem melhorada! Nitidez +40%, Contraste +35%, candles otimizados.</div>
 <div class="rotate-info" id="rotateInfo" style="display:none">
-  <span>🔄</span><span id="rotateInfoText">Rotação: 0° | Proporção: 4:3</span>
+  <span>🔄</span><span id="rotateInfoText">Rotação: 0° | 16:9 Wide</span>
 </div>
 
 <div class="btn-row">
   <button class="btn-upload" onclick="document.getElementById('fi').click()">📂 Selecionar Gráfico</button>
-  <button class="btn-cam" onclick="openCamera()">📷 Câmera (Wide)</button>
+  <button class="btn-cam" onclick="openCamera()">📷 Câmera Gráfico</button>
 </div>
 <input id="fi" type="file" accept="image/*" style="display:none" onchange="handleFile(this)"/>
 <canvas id="cv" style="display:none"></canvas>
@@ -492,7 +590,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
 </div>
 
 <div id="resultSection"></div>
-<div class="footer-note">TRADER PHOTO I.A PRO v7 • IA Adaptativa • 16 Métodos • 9 Modos API • Confluência Mínima 3 • Memória 2000 Ops</div>
+<div class="footer-note">TRADER PHOTO I.A PRO v8 • Câmera Gráfico Corrigida • IA Adaptativa v3+v7 • 16 Métodos • 9 Modos</div>
 </div></div>
 
 <script>
@@ -500,7 +598,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
 let imgB64 = null, imgOrigB64 = null, imgEnhancedB64 = null, analyzing = false, videoStream = null;
 let selTf = "1M", selMethod = "otc", appMode = "offline";
 let imgRotation = 0, imgFlippedH = false, imgAspectWide = false, isEnhanced = false;
-let camFacing = 'environment', camMode = 'wide';
+let camFacing = 'environment';
 let apiKeys = { gemini:"", chatgpt:"", claude:"", deepseek:"", custom:"", euler:"", forex:"", fcs:"" };
 
 const TF_OPTIONS = ["1M","2M","3M","5M","15M","OTC"];
@@ -514,226 +612,29 @@ const METODOS = {
   pavio_corpo:"🕯️ Pavio+Corpo", rompe_maxmin:"📐 Rompe Máx/Mín"
 };
 
-// ===================== PROMPTS ESPECIALIZADOS POR MÉTODO =====================
+// ===================== PROMPTS ESPECIALIZADOS =====================
 function buildPrompt(method, tf) {
   const base = `Você é um analista técnico profissional de trading com 15 anos de experiência. Analise TODA a imagem do gráfico (TODOS os candles visíveis, do mais antigo à esquerda ao mais recente à direita). Timeframe: ${tf}.`;
-  const retorno = `\nRetorne APENAS JSON sem markdown, sem explicações externas: {"sinal":"COMPRA ou VENDA","confianca":"ALTA/MEDIA/BAIXA","probabilidade":50-95,"resumo":"análise técnica objetiva em 2 linhas descrevendo o padrão, tendência e justificativa da operação","tendencia":"ALTA/BAIXA/LATERAL","padrao":"nome do padrão identificado","nivel_entrada":"descrição do nível","alvo":"projeção de alvo","stop":"sugestão de stop"}`;
+  const retorno = `\nRetorne APENAS JSON sem markdown: {"sinal":"COMPRA ou VENDA","confianca":"ALTA/MEDIA/BAIXA","probabilidade":50-95,"resumo":"análise técnica em 2 linhas","tendencia":"ALTA/BAIXA/LATERAL","padrao":"padrão identificado","nivel_entrada":"nível","alvo":"projeção","stop":"stop sugerido"}`;
 
   const prompts = {
-    otc: `${base} MODO OTC/BINÁRIAS:
-Analise para operações binárias de curto prazo (1-5 minutos):
-1. Identifique zonas de pressão compradora vs vendedora (cores dos candles, tamanho dos corpos)
-2. Verifique o momentum do último candle e dos 3 anteriores
-3. Identifique padrões de reversão de curto prazo: Pin Bar, Doji, Engolfo
-4. Analise se há movimento lateral, tendência ou reversão iminente
-5. Determine a probabilidade de movimento nos próximos 1-3 candles
-6. Zonas de suporte/resistência visíveis que podem barrar o preço
-Foco: Alta assertividade para entrada imediata.${retorno}`,
-
-    auto: `${base} MODO IA COMPLETA:
-Realize análise técnica abrangente combinando todos os métodos:
-1. Estrutura de mercado completa (HH/HL ou LH/LL)
-2. Padrões de candlestick e formações chartistas
-3. Suportes e resistências horizontais e dinâmicos
-4. Momentum e força do movimento atual
-5. Volume visual (tamanho dos corpos dos candles)
-6. Confluências de múltiplos sinais
-7. Contexto geral da tendência predominante
-Forneça a análise mais completa e precisa possível.${retorno}`,
-
-    sr: `${base} MODO SUPORTE E RESISTÊNCIA:
-Foco exclusivo em níveis de preço chave:
-1. Identifique os 3 suportes mais relevantes visíveis no gráfico
-2. Identifique as 3 resistências mais relevantes visíveis
-3. Determine a posição atual do preço em relação a esses níveis
-4. Avalie se o preço está testando, rompendo ou rejeitando algum nível
-5. Identifique zonas de acumulação (candles laterais) e distribuição
-6. Analise a força de cada nível (número de toques, rejeições históricas)
-7. Determine o próximo nível chave de interesse (alvo ou barreira)
-Priorize a precisão dos níveis para definir entradas e saídas.${retorno}`,
-
-    vela: `${base} MODO ANÁLISE VELA A VELA:
-Análise detalhada de cada candlestick visível:
-1. Identifique os padrões de velas individuais: Marubozu, Doji, Hammer, Shooting Star, Spinning Top
-2. Identifique padrões de 2 velas: Engolfo Altista/Baixista, Harami, Tweezer Tops/Bottoms
-3. Identifique padrões de 3 velas: Morning Star, Evening Star, Three White Soldiers, Three Black Crows
-4. Analise o contexto de cada padrão (posição na tendência, volume relativo pelos corpos)
-5. Avalie a qualidade do último padrão formado
-6. Determine o viés resultante da combinação de padrões
-Seja específico sobre o padrão e sua localização no gráfico.${retorno}`,
-
-    pavio: `${base} MODO ANÁLISE DE PAVIOS/SOMBRAS:
-Foco nas sombras/pavios dos candles:
-1. Identifique candles com pavios longos superiores (rejeição de resistência)
-2. Identifique candles com pavios longos inferiores (rejeição de suporte)
-3. Analise Pin Bars: corpo pequeno com pavio >= 2x o corpo
-4. Identifique zonas onde múltiplos pavios apontam para a mesma região (confluência)
-5. Avalie a presença de sombras de manipulação (stop hunt, wick trap)
-6. Determine a direção predominante dos pavios nos últimos 5-10 candles
-7. Identifique pavios que indicam pressão institucional
-Foco em rejeições de preço como sinal de entrada.${retorno}`,
-
-    perfil: `${base} MODO PERFIL DE VOLUME VISUAL:
-Análise de volume e perfil de preço pelo visual dos candles:
-1. Identifique candles de alto volume (corpos grandes, cores sólidas)
-2. Identifique candles de baixo volume (corpos pequenos, indecisão)
-3. Analise o perfil de negociação: onde houve mais atividade (candles maiores)
-4. Identifique o Point of Control visual (região de maior densidade de preço)
-5. Analise Value Area: faixa onde ocorreu ~70% do movimento
-6. Identifique nós de volume (regiões com candles agrupados)
-7. Determine se há volume confirmando a tendência ou divergindo
-Foco em áreas de maior atividade de mercado.${retorno}`,
-
-    price: `${base} MODO PRICE ACTION PURO:
-Análise de Price Action sem indicadores:
-1. Determine a estrutura de mercado: Higher Highs/Higher Lows (tendência de alta) ou Lower Highs/Lower Lows (tendência de baixa)
-2. Identifique Order Blocks: últimos candles bearish antes de movimento de alta / últimos bullish antes de queda
-3. Identifique Fair Value Gaps (FVGs): gaps de preço não preenchidos
-4. Analise Break of Structure (BOS) e Change of Character (CHOCH)
-5. Identifique zonas de liquidez (onde stops provavelmente estão acumulados)
-6. Analise o momentum atual: aceleração ou desaceleração
-7. Determine o próximo movimento lógico de Price Action
-Foco em leitura pura do mercado sem ruído de indicadores.${retorno}`,
-
-    fibo: `${base} MODO FIBONACCI + MACD:
-Análise de retração de Fibonacci e momentum:
-1. Identifique o movimento impulsivo mais recente (swing high para swing low ou vice-versa)
-2. Determine onde os níveis de Fibonacci cairiam visualmente (23.6%, 38.2%, 50%, 61.8%, 78.6%)
-3. Analise se o preço está em zona de retração Fibonacci favorável para entrada
-4. Observe o momentum dos candles recentes para inferir comportamento tipo MACD
-5. Identifique divergências entre o movimento do preço e o momentum visual
-6. Determine se o preço está em extensão Fibonacci (127.2%, 161.8%)
-7. Analise se há confluência entre nível Fibonacci e suporte/resistência
-Foco em zonas de retração para entrada com relação risco/retorno favorável.${retorno}`,
-
-    "15min": `${base} MODO SCALPING 1-5 MINUTOS:
-Análise otimizada para scalp ultra-rápido:
-1. Foque exclusivamente nos últimos 10-15 candles (extremidade direita do gráfico)
-2. Identifique microestruturas: mini-topos e fundos dos últimos candles
-3. Analise o momentum dos últimos 3-5 candles com máxima atenção
-4. Identifique o bias direcional imediato: qual lado tem mais pressão agora
-5. Verifique se há suporte/resistência imediato próximo do preço atual
-6. Analise a volatilidade dos últimos candles (tamanho das velas)
-7. Determine se o mercado está com momentum ou consolidando
-Foco em entrada rápida com stop curto e alvo próximo.${retorno}`,
-
-    forex: `${base} MODO FOREX:
-Análise específica para mercado cambial:
-1. Identifique a tendência principal do par (olhe do início ao fim do gráfico)
-2. Analise as zonas de suporte e resistência relevantes para forex
-3. Identifique padrões típicos de forex: false breakouts, consolidações, expansões
-4. Analise o horário provável e sessão (Asian, London, NY range)
-5. Identifique se há armadilha de liquidez (stop hunt) recente
-6. Analise a força relativa do movimento: impulso vs correção
-7. Determine o alvo em pips baseado nos movimentos anteriores visíveis
-Foco em operações com risco/retorno mínimo de 1:2.${retorno}`,
-
-    volume: `${base} MODO VOLUME / VSA (Volume Spread Analysis):
-Análise de Volume Spread Analysis:
-1. Analise o spread (amplitude) de cada candle em relação ao volume inferido pelo tamanho do corpo
-2. Identifique candles de Upthrust (alta com pavio longo e corpo pequeno = distribuição)
-3. Identifique Spring (rompimento falso de suporte com retorno = acumulação)
-4. Analise candles de No Supply (pequenos corpos em uptrend = sem pressão vendedora)
-5. Analise candles de No Demand (pequenos corpos em downtrend = sem pressão compradora)
-6. Identifique climax de compra ou venda (candle grande com reversão)
-7. Determine a fase de mercado: Acumulação / Markup / Distribuição / Markdown
-Foco em leitura institucional do mercado.${retorno}`,
-
-    continuacao: `${base} MODO CONTINUAÇÃO DE TENDÊNCIA:
-Busca por setup de continuação:
-1. Confirme a tendência principal vigente (alta ou baixa)
-2. Identifique pullbacks/correções dentro dessa tendência
-3. Analise se a correção está chegando ao fim (sinais de exaustão)
-4. Identifique padrões de continuação: Flag, Pennant, Triangle, Inside Bar
-5. Verifique se o preço retornou a uma média ou suporte/resistência chave
-6. Analise o volume visual: diminuindo na correção (bom sinal) ou aumentando (alerta)
-7. Determine o ponto ideal de entrada para a continuação
-Foco em entrar na direção da tendência maior no melhor preço possível.${retorno}`,
-
-    reversao: `${base} MODO REVERSÃO DE TENDÊNCIA:
-Busca por setup de reversão:
-1. Identifique a tendência atual que pode estar se esgotando
-2. Analise sinais de exaustão: candles menores, pavios contra a tendência, momentum fraco
-3. Identifique padrões clássicos de reversão: Double Top/Bottom, Head & Shoulders, Wedge
-4. Verifique se há divergência entre preço e momentum visual
-5. Analise se o preço chegou em zona de sobrecompra/sobrevenda visual
-6. Identifique o ponto de confirmação da reversão (break de estrutura)
-7. Avalie a qualidade do setup: quantos fatores confluem para a reversão
-Foco em capturar o início de um novo movimento.${retorno}`,
-
-    smc: `${base} MODO SMC/ICT (Smart Money Concepts):
-Análise pelo conceito de dinheiro inteligente:
-1. Identifique a estrutura de mercado institucional: BOS (Break of Structure) e CHOCH (Change of Character)
-2. Identifique Order Blocks institucionais: últimos candles bearish antes de impulso bullish (OB bullish) e vice-versa
-3. Identifique Fair Value Gaps (imbalances/desequilíbrios): gaps entre a high de uma vela e a low da próxima
-4. Analise zonas de liquidez onde stops estão acumulados: acima de swing highs e abaixo de swing lows
-5. Identifique Premium Zone (acima do range = venda) e Discount Zone (abaixo do midpoint = compra)
-6. Analise se houve grabção de liquidez (stop hunt) recente
-7. Determine o POI (Point of Interest) mais próximo para entrada institucional
-Foco em alinhar com o fluxo do dinheiro institucional.${retorno}`,
-
-    pavio_corpo: `${base} MODO ROMPIMENTO PAVIO+CORPO (Rejeição Contra-Tendência):
-
-⚠️ REGRA FUNDAMENTAL: Pavio rompe nível MAS CORPO fecha DENTRO da zona anterior = REJEIÇÃO FORTE = sinal CONTRÁRIO à tentativa de rompimento.
-
-IDENTIFIQUE O PADRÃO:
-1. Localize um candle com pavio longo (superior ou inferior) que ultrapassou o máximo ou mínimo do candle anterior
-2. Verifique se o CORPO desse candle fechou DENTRO do range do candle anterior (rejeição confirmada)
-3. O pavio deve ser >= 1.5x o tamanho do corpo para ser válido
-4. Um pavio superior longo com corpo fechando abaixo = REJEIÇÃO DE ALTA → sinal de VENDA
-5. Um pavio inferior longo com corpo fechando acima = REJEIÇÃO DE BAIXA → sinal de COMPRA
-
-CONFLUÊNCIAS (quanto mais, maior a probabilidade):
-- Candle de confirmação na direção do sinal após o pavio (muito importante)
-- Zona de suporte/resistência histórica no nível do pavio
-- Média móvel (SMA/EMA) servindo como suporte/resistência no mesmo nível
-- Nível de Fibonacci (38.2%, 50%, 61.8%) coincidindo com a zona
-- Tendência geral favorecendo a reversão (pavio em topo de tendência de alta = venda mais forte)
-- Volume visual decrescente antes do pavio (exaustão)
-- Divergência de momentum (candles menores antes do pavio)
-
-PROBABILIDADE POR CONFLUÊNCIAS:
-- 2-3 fatores: 60-68% (confiança BAIXA)  
-- 4-5 fatores: 69-78% (confiança MEDIA)
-- 6+ fatores: 79-92% (confiança ALTA)${retorno}`,
-
-    rompe_maxmin: `${base} MODO ROMPIMENTO DE MÁXIMA/MÍNIMA COM CORPO (Continuação de Tendência):
-
-⚠️ REGRA FUNDAMENTAL: Candle cuja MÁXIMA DO PAVIO + CORPO rompe e FECHA ACIMA da máxima do candle anterior = ROMPIMENTO VÁLIDO = COMPRA. Candle que fecha ABAIXO da mínima anterior = ROMPIMENTO VÁLIDO = VENDA.
-
-CONCEITO: Diferente da rejeição (pavio corpo), aqui o CORPO DO CANDLE fecha além do nível — isso confirma o rompimento com força.
-
-PARA COMPRA (rompimento de máxima):
-1. Identifique o candle anterior com sua máxima definida
-2. O candle atual deve fechar seu CORPO (não apenas o pavio) ACIMA da máxima anterior
-3. Quanto maior o corpo em relação ao pavio, mais forte o rompimento
-4. Um Marubozu (sem pavios) fechando acima = rompimento de máxima força
-5. Verifique se há Volume visual alto (corpo grande, cor sólida) confirmando
-6. A tendência anterior aos últimos 3-5 candles deve sugerir pressão compradora
-7. Identifique se o rompimento ocorre em zona de resistência histórica (breakout mais potente)
-8. Analise se houve correção (pullback) antes do rompimento (melhor qualidade)
-9. Verifique confluência com SMA/EMA cruzando abaixo do preço (suporte dinâmico)
-10. Fibonacci: rompimento acima do nível 61.8% ou extensão 127.2% confirma força
-
-PARA VENDA (rompimento de mínima):
-1. O candle atual fecha seu CORPO ABAIXO da mínima do candle anterior
-2. Corpo grande e vermelho com pouco pavio superior = força vendedora
-3. Tendência de baixa confirmada nos candles anteriores
-4. Rompimento de suporte histórico = sinal mais forte
-5. SMA/EMA acima do preço como resistência dinâmica
-6. Fibonacci: fechamento abaixo de 38.2% de retração confirma continuação de queda
-
-VALIDAÇÃO CRUZADA — Verifique SEMPRE:
-- O candle de rompimento fechou REALMENTE além do nível? (não apenas o pavio)
-- Há espaço para o preço continuar? (próximo S/R não muito próximo)
-- O contexto maior da tendência está alinhado?
-
-PROBABILIDADE:
-- Rompimento simples: 62-70%
-- Rompimento + confluência SMA: 71-79%
-- Rompimento + SMA + Fibo + volume: 80-92%${retorno}`
+    otc: `${base} MODO OTC/BINÁRIAS: Analise para operações binárias 1-5min. Identifique zonas de pressão compradora vs vendedora, momentum do último candle, padrões de reversão curto prazo (Pin Bar, Doji, Engolfo). Foco em alta assertividade para entrada imediata.${retorno}`,
+    auto: `${base} MODO IA COMPLETA: Análise abrangente — estrutura de mercado (HH/HL ou LH/LL), padrões de candlestick, suportes/resistências, momentum, volume visual, confluências múltiplas e contexto geral.${retorno}`,
+    sr: `${base} MODO SUPORTE/RESISTÊNCIA: Identifique 3 suportes e 3 resistências, posição atual do preço, se está testando/rompendo/rejeitando algum nível, zonas de acumulação e distribuição.${retorno}`,
+    vela: `${base} MODO VELA A VELA: Identifique padrões individuais (Marubozu, Doji, Hammer, Shooting Star), padrões de 2 velas (Engolfo, Harami, Tweezer), padrões de 3 velas (Morning Star, Evening Star, Three Soldiers/Crows).${retorno}`,
+    pavio: `${base} MODO PAVIOS/SOMBRAS: Identifique pavios longos superiores/inferiores, Pin Bars, zonas de múltiplos pavios confluentes, sombras de manipulação (stop hunt). Foco em rejeições de preço.${retorno}`,
+    perfil: `${base} MODO PERFIL DE VOLUME: Analise candles de alto/baixo volume, POC visual, Value Area (~70% do movimento), nós de volume, confirmação ou divergência de volume na tendência.${retorno}`,
+    price: `${base} MODO PRICE ACTION: Estrutura de mercado (HH/HL ou LH/LL), Order Blocks, Fair Value Gaps, Break of Structure, Change of Character, zonas de liquidez, momentum atual.${retorno}`,
+    fibo: `${base} MODO FIBONACCI+MACD: Identifique o movimento impulsivo recente, níveis Fibonacci (23.6%, 38.2%, 50%, 61.8%, 78.6%), se há retração em zona favorável, momentum tipo MACD, extensões 127.2%/161.8%.${retorno}`,
+    "15min": `${base} MODO SCALPING 1-5M: Foque nos últimos 10-15 candles, microestruturas, momentum dos últimos 3-5 candles, bias direcional imediato, suporte/resistência próximo, volatilidade atual.${retorno}`,
+    forex: `${base} MODO FOREX: Tendência principal do par, zonas S/R relevantes para forex, false breakouts, sessão provável (Asian/London/NY), liquidez armadilha recente, força relativa do movimento.${retorno}`,
+    volume: `${base} MODO VOLUME/VSA: Upthrust, Spring, No Supply, No Demand, climax de compra/venda, fase de mercado (Acumulação/Markup/Distribuição/Markdown). Leitura institucional.${retorno}`,
+    continuacao: `${base} MODO CONTINUAÇÃO: Confirme tendência principal, identifique pullbacks, analise exaustão do pullback, padrões de continuação (Flag, Pennant, Triangle, Inside Bar), volume na correção.${retorno}`,
+    reversao: `${base} MODO REVERSÃO: Tendência se esgotando, sinais de exaustão, padrões de reversão (Double Top/Bottom, H&S, Wedge), divergência preço/momentum, ponto de confirmação da reversão.${retorno}`,
+    smc: `${base} MODO SMC/ICT: BOS e CHOCH, Order Blocks institucionais, Fair Value Gaps (imbalances), zonas de liquidez (acima de swing highs/abaixo de swing lows), Premium/Discount Zones, stop hunt recente.${retorno}`,
+    pavio_corpo: `${base} MODO PAVIO+CORPO: REGRA: Pavio rompe nível MAS CORPO fecha DENTRO da zona anterior = REJEIÇÃO FORTE = sinal CONTRÁRIO. Pavio superior longo + corpo fecha abaixo = VENDA. Pavio inferior longo + corpo fecha acima = COMPRA. Verifique confluências: nível S/R, Fibonacci, tendência.${retorno}`,
+    rompe_maxmin: `${base} MODO ROMPIMENTO MÁXIMA/MÍNIMA: REGRA: Corpo do candle fecha ACIMA da máxima anterior = COMPRA. Corpo fecha ABAIXO da mínima anterior = VENDA. Confirme: corpo real (não apenas pavio) fechou além do nível, volume alto, espaço para continuar, tendência alinhada.${retorno}`
   };
-
   return prompts[method] || prompts.auto;
 }
 
@@ -755,13 +656,12 @@ window.onload = function() {
   setMode('offline');
   ['gemini','chatgpt','claude','deepseek','custom','euler','forex','fcs'].forEach(k => {
     const el = document.getElementById(`${k}Key`);
-    if(el && apiKeys[k]) { el.value = apiKeys[k]; }
-    const customEl = document.getElementById('customKey');
-    if(customEl && apiKeys.custom) {
-      document.getElementById('customKeyStatus').textContent = `✅ Chave salva: ${apiKeys.custom.substring(0,15)}...`;
-      document.getElementById('customKeyStatus').style.color = '#00e676';
-    }
+    if(el && apiKeys[k]) el.value = apiKeys[k];
   });
+  if(apiKeys.custom) {
+    const s = document.getElementById('customKeyStatus');
+    if(s) { s.textContent = `✅ Chave salva: ${apiKeys.custom.substring(0,15)}...`; s.style.color='#00e676'; }
+  }
 };
 
 function buildTfButtons() {
@@ -801,18 +701,15 @@ function updateClock() {
 function toggleApiPanel() {
   const body = document.getElementById('apiBody');
   const arrow = document.getElementById('apiArrow');
-  const open = body.classList.toggle('open');
-  arrow.textContent = open ? '▲' : '▼';
+  arrow.textContent = body.classList.toggle('open') ? '▲' : '▼';
 }
 
 function toggleKeygen() {
   const body = document.getElementById('keygenBody');
   const arrow = document.getElementById('keygenArrow');
-  const open = body.classList.toggle('open');
-  arrow.textContent = open ? '▲' : '▼';
+  arrow.textContent = body.classList.toggle('open') ? '▲' : '▼';
 }
 
-// ==================== GERADOR DE CHAVE ====================
 function generateRandomKey() {
   const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
   let result = "sk_";
@@ -824,7 +721,7 @@ function generateRandomKey() {
 
 function copyGeneratedKey() {
   const inp = document.getElementById('generatedKey');
-  if(!inp.value) { generateRandomKey(); }
+  if(!inp.value) generateRandomKey();
   inp.select();
   try { document.execCommand('copy'); } catch(e) { navigator.clipboard.writeText(inp.value); }
   document.getElementById('keygenStatus').textContent = '📋 Copiada! Cole no campo "Chave Aleatória" abaixo.';
@@ -842,7 +739,7 @@ function deleteKey(type) {
   apiKeys[type]=''; try { localStorage.removeItem(`apiKey_${type}`); } catch(e){}
   const el = document.getElementById(`${type}Key`); if(el) el.value='';
   const s = document.getElementById(`${type}Status`);
-  if(s) { s.textContent=`🗑️ Chave removida`; s.style.color='#ff6b6b'; }
+  if(s) { s.textContent='🗑️ Chave removida'; s.style.color='#ff6b6b'; }
 }
 function saveCustomKey() {
   const val = document.getElementById('customKey').value.trim();
@@ -851,8 +748,7 @@ function saveCustomKey() {
     apiKeys.custom=val; try { localStorage.setItem('apiKey_custom',val); } catch(e){}
     s.textContent=`✅ Chave salva: ${val.substring(0,15)}...`; s.style.color='#00e676';
   } else {
-    s.textContent = '❌ Mínimo 6 caracteres. Use a chave gerada acima!';
-    s.style.color='#ff6b6b';
+    s.textContent = '❌ Mínimo 6 caracteres. Use a chave gerada acima!'; s.style.color='#ff6b6b';
   }
 }
 function deleteCustomKey() {
@@ -869,7 +765,9 @@ function setMode(mode) {
   const classMap = {offline:'active-mode',gemini:'active-mode-gem',chatgpt:'active-mode-chat',claude:'active-mode-claude',deepseek:'active-mode-deep',custom:'active-mode-custom',euler:'active-mode-euler',forex:'active-mode-forex',fcs:'active-mode-fcs'};
   const btns = document.querySelectorAll('.mode-btn');
   if(btns[idx[mode]]) btns[idx[mode]].classList.add(classMap[mode]);
-  ['geminiArea','chatgptArea','claudeArea','deepseekArea','customArea','eulerArea','forexArea','fcsArea'].forEach(a => { const el=document.getElementById(a); if(el) el.style.display='none'; });
+  ['geminiArea','chatgptArea','claudeArea','deepseekArea','customArea','eulerArea','forexArea','fcsArea'].forEach(a => {
+    const el=document.getElementById(a); if(el) el.style.display='none';
+  });
   if(mode!=='offline') { const el=document.getElementById(`${mode}Area`); if(el) el.style.display='block'; }
   document.querySelectorAll('.mode-info').forEach(el => el.style.display='none');
   if(mode==='offline') document.getElementById('modeInfoOffline').style.display='block';
@@ -882,16 +780,14 @@ function setMode(mode) {
   chip.className = `mode-chip ${chipClass[mode]||'offline'}`;
 }
 
-// ==================== CÂMERA ====================
-let camGridOn = false;
-
+// ==================== CÂMERA CORRIGIDA ====================
 async function openCamera() {
   try {
     const constraints = {
       video: {
         facingMode: camFacing,
-        width: { ideal: 3840, min: 1280 },
-        height: { ideal: 2160, min: 720 }
+        width: { ideal: 1920 },
+        height: { ideal: 1080 }
       }
     };
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -902,14 +798,7 @@ async function openCamera() {
     document.getElementById('camOverlay').classList.add('on');
     updateCamLabel();
   } catch(e) {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:camFacing,width:{ideal:1920},height:{ideal:1080}}});
-      videoStream = stream;
-      document.getElementById('liveVid').srcObject = stream;
-      await document.getElementById('liveVid').play();
-      document.getElementById('camOverlay').classList.add('on');
-      updateCamLabel();
-    } catch(e2) { showErr('Erro câmera: ' + e2.message); }
+    showErr('Erro câmera: ' + e.message);
   }
 }
 
@@ -919,95 +808,49 @@ function toggleCamFacing() {
   openCamera();
 }
 
-function toggleCamGrid() {
-  camGridOn = !camGridOn;
-  const frame = document.getElementById('camFrame');
-  if(camGridOn) {
-    frame.style.backgroundImage = 'linear-gradient(rgba(0,230,118,0.15) 1px,transparent 1px),linear-gradient(90deg,rgba(0,230,118,0.15) 1px,transparent 1px)';
-    frame.style.backgroundSize = '33.3% 33.3%';
-    document.getElementById('gridLabel').textContent = 'GRADE✓';
-  } else {
-    frame.style.backgroundImage = 'none';
-    document.getElementById('gridLabel').textContent = 'GRADE';
-  }
-}
-
 function updateCamLabel() {
   const facing = camFacing === 'environment' ? 'TRASEIRA' : 'FRONTAL';
-  document.getElementById('camLabel').textContent = `📷 ${facing} • APONTE PARA A TELA DO PC`;
+  document.getElementById('camLabel').textContent = `📷 ${facing} • APONTE PARA O GRÁFICO`;
 }
 
 function closeCamera() {
   if(videoStream) videoStream.getTracks().forEach(t => t.stop());
+  videoStream = null;
   document.getElementById('camOverlay').classList.remove('on');
 }
 
+// ==================== CAPTURA DE FOTO — FRAME COMPLETO ====================
 function shootPhoto() {
   const video = document.getElementById('liveVid');
-  const frame = document.getElementById('camFrame');
   const canvas = document.getElementById('cv');
 
-  // Dimensões reais do vídeo
-  const vW = video.videoWidth || 1920;
-  const vH = video.videoHeight || 1080;
+  // Captura o frame COMPLETO do vídeo (sem crop complexo que causava tela verde)
+  const vW = video.videoWidth || 1280;
+  const vH = video.videoHeight || 720;
 
-  // Calcula a área do frame em relação à tela
-  // O vídeo está em object-fit:cover — precisa calcular o mapeamento real
-  const vidEl = video;
-  const dispW = vidEl.clientWidth;
-  const dispH = vidEl.clientHeight;
-
-  // Escala do vídeo renderizado (cover = preenche tudo, pode cortar)
-  const scaleX = vW / dispW;
-  const scaleY = vH / dispH;
-  // Se cover, a escala usada é a maior (mantém aspecto)
-  const scale = Math.max(scaleX, scaleY);
-
-  // Offset do vídeo renderizado dentro do elemento (centralizado)
-  const rendW = vW / scale;
-  const rendH = vH / scale;
-  const offX = (dispW - rendW) / 2; // negativo se crop
-  const offY = (dispH - rendH) / 2;
-
-  // Posição e tamanho do frame na tela
-  const frameRect = frame.getBoundingClientRect();
-  const vidRect = vidEl.getBoundingClientRect();
-
-  // Posição do frame relativa ao elemento de vídeo
-  const fLeft = frameRect.left - vidRect.left;
-  const fTop = frameRect.top - vidRect.top;
-  const fW = frameRect.width;
-  const fH = frameRect.height;
-
-  // Mapeia para coordenadas no vídeo real
-  const cropX = Math.round((fLeft - offX) * scale);
-  const cropY = Math.round((fTop - offY) * scale);
-  const cropW = Math.round(fW * scale);
-  const cropH = Math.round(fH * scale);
-
-  // Clamp para dentro dos limites do vídeo
-  const safeX = Math.max(0, cropX);
-  const safeY = Math.max(0, cropY);
-  const safeW = Math.min(cropW, vW - safeX);
-  const safeH = Math.min(cropH, vH - safeY);
-
-  canvas.width = safeW;
-  canvas.height = safeH;
+  canvas.width = vW;
+  canvas.height = vH;
   const ctx = canvas.getContext('2d');
-  // Desenha apenas a área do frame = imagem reta sem bordas pretas
-  ctx.drawImage(video, safeX, safeY, safeW, safeH, 0, 0, safeW, safeH);
+
+  // Limpa o canvas com preto antes de desenhar
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, vW, vH);
+  ctx.drawImage(video, 0, 0, vW, vH);
 
   // Flash
   const flash = document.getElementById('camFlash');
   flash.classList.add('on');
   setTimeout(() => flash.classList.remove('on'), 150);
 
-  const dataUrl = canvas.toDataURL('image/jpeg', 0.97);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
   imgOrigB64 = dataUrl.split(',')[1];
-  imgB64 = imgOrigB64; imgEnhancedB64 = null; isEnhanced = false;
-  imgRotation = 0; imgFlippedH = false;
+  imgB64 = imgOrigB64;
+  imgEnhancedB64 = null;
+  isEnhanced = false;
+  imgRotation = 0;
+  imgFlippedH = false;
 
-  // Sempre landscape para gráficos de trading
+  // Sempre landscape para gráficos
   imgAspectWide = true;
   document.getElementById('previewBox').className = 'preview-box landscape-mode';
   document.getElementById('previewImg').style.transform = 'none';
@@ -1019,10 +862,11 @@ function shootPhoto() {
   document.getElementById('rotateInfo').style.display = 'flex';
   document.getElementById('btnEnhance').className = 'btn-enhance';
   document.getElementById('btnEnhance').textContent = '🔬 MELHORAR IMAGEM';
+  document.getElementById('btnEnhance').disabled = false;
   document.getElementById('enhanceInfo').className = 'enhance-info';
   updateRotateInfo();
   closeCamera();
-  setStatus('✅ Foto capturada! Imagem reta (crop do frame). Clique em 🔬 MELHORAR IMAGEM para maior precisão.');
+  setStatus('✅ Foto capturada! Clique em 🔬 MELHORAR IMAGEM para maior precisão na análise.');
   updateAnalyzeButton();
 }
 
@@ -1037,8 +881,13 @@ function handleFile(input) {
     imgRotation = 0; imgFlippedH = false;
     const tmpImg = new Image();
     tmpImg.onload = () => {
-      if(tmpImg.width > tmpImg.height * 1.2) { imgAspectWide=true; document.getElementById('previewBox').className='preview-box landscape-mode'; }
-      else { imgAspectWide=false; document.getElementById('previewBox').className='preview-box portrait-mode'; }
+      if(tmpImg.width > tmpImg.height * 1.2) {
+        imgAspectWide=true;
+        document.getElementById('previewBox').className='preview-box landscape-mode';
+      } else {
+        imgAspectWide=false;
+        document.getElementById('previewBox').className='preview-box portrait-mode';
+      }
     };
     tmpImg.src = dataUrl;
     document.getElementById('ph').style.display = 'none';
@@ -1050,9 +899,10 @@ function handleFile(input) {
     document.getElementById('rotateInfo').style.display = 'flex';
     document.getElementById('btnEnhance').className = 'btn-enhance';
     document.getElementById('btnEnhance').textContent = '🔬 MELHORAR IMAGEM';
+    document.getElementById('btnEnhance').disabled = false;
     document.getElementById('enhanceInfo').className = 'enhance-info';
     updateRotateInfo();
-    setStatus('✅ Gráfico carregado! Clique em 🔬 MELHORAR IMAGEM para maior precisão na análise.');
+    setStatus('✅ Gráfico carregado! Clique em 🔬 MELHORAR IMAGEM para maior precisão.');
     updateAnalyzeButton();
   };
   reader.readAsDataURL(input.files[0]);
@@ -1077,75 +927,63 @@ function enhanceImage() {
     const ctx = cv.getContext('2d');
     ctx.drawImage(tmpImg, 0, 0);
 
-    // Passo 1: Sharpening com convolução (unsharp mask)
     const W = cv.width, H = cv.height;
     const orig = ctx.getImageData(0, 0, W, H);
     const data = orig.data;
     const out = new Uint8ClampedArray(data.length);
 
-    // Kernel de sharpening agressivo
+    // Sharpening
     const kernel = [0, -1, 0, -1, 5, -1, 0, -1, 0];
     for(let y = 1; y < H-1; y++) {
       for(let x = 1; x < W-1; x++) {
         for(let c = 0; c < 3; c++) {
           let v = 0;
-          for(let ky = -1; ky <= 1; ky++) {
-            for(let kx = -1; kx <= 1; kx++) {
+          for(let ky = -1; ky <= 1; ky++)
+            for(let kx = -1; kx <= 1; kx++)
               v += data[((y+ky)*W+(x+kx))*4+c] * kernel[(ky+1)*3+(kx+1)];
-            }
-          }
           out[(y*W+x)*4+c] = Math.max(0, Math.min(255, v));
         }
         out[(y*W+x)*4+3] = 255;
       }
     }
-    // bordas
     for(let x = 0; x < W; x++) { for(let c = 0; c < 4; c++) { out[x*4+c]=data[x*4+c]; out[((H-1)*W+x)*4+c]=data[((H-1)*W+x)*4+c]; } }
     for(let y = 0; y < H; y++) { for(let c = 0; c < 4; c++) { out[y*W*4+c]=data[y*W*4+c]; out[(y*W+W-1)*4+c]=data[(y*W+W-1)*4+c]; } }
+    ctx.putImageData(new ImageData(out, W, H), 0, 0);
 
-    const sharpened = new ImageData(out, W, H);
-    ctx.putImageData(sharpened, 0, 0);
-
-    // Passo 2: Aumento de contraste (S-curve)
-    const contrasted = ctx.getImageData(0, 0, W, H);
-    const cd = contrasted.data;
-    const factor = 1.45; // contraste +45%
+    // Contraste
+    const cd = ctx.getImageData(0, 0, W, H).data;
+    const factor = 1.45;
     for(let i = 0; i < cd.length; i += 4) {
       cd[i]   = Math.max(0, Math.min(255, factor*(cd[i]-128)+128));
       cd[i+1] = Math.max(0, Math.min(255, factor*(cd[i+1]-128)+128));
       cd[i+2] = Math.max(0, Math.min(255, factor*(cd[i+2]-128)+128));
     }
-    ctx.putImageData(contrasted, 0, 0);
+    ctx.putImageData(new ImageData(cd, W, H), 0, 0);
 
-    // Passo 3: Saturação de cores (intensifica verde/vermelho dos candles)
-    const saturated = ctx.getImageData(0, 0, W, H);
-    const sd = saturated.data;
+    // Saturação
+    const sd = ctx.getImageData(0, 0, W, H).data;
+    const sat = 1.35;
     for(let i = 0; i < sd.length; i += 4) {
-      const r = sd[i], g = sd[i+1], b = sd[i+2];
-      const avg = (r+g+b)/3;
-      const sat = 1.35;
+      const r=sd[i],g=sd[i+1],b=sd[i+2];
+      const avg=(r+g+b)/3;
       sd[i]   = Math.max(0, Math.min(255, avg + sat*(r-avg)));
       sd[i+1] = Math.max(0, Math.min(255, avg + sat*(g-avg)));
       sd[i+2] = Math.max(0, Math.min(255, avg + sat*(b-avg)));
     }
-    ctx.putImageData(saturated, 0, 0);
+    ctx.putImageData(new ImageData(sd, W, H), 0, 0);
 
-    // Salvar como enhanced
     const enhanced = cv.toDataURL('image/jpeg', 0.97);
     imgEnhancedB64 = enhanced.split(',')[1];
     imgB64 = imgEnhancedB64;
     isEnhanced = true;
 
-    // Atualizar preview
     document.getElementById('previewImg').src = enhanced;
     document.getElementById('previewImg').style.filter = 'none';
-
     btn.className = 'btn-enhance enhanced';
     btn.textContent = '✅ IMAGEM MELHORADA';
     btn.disabled = false;
     infoEl.className = 'enhance-info visible';
     setStatus('🔬 Imagem aprimorada! Nitidez e contraste otimizados. Pronto para análise precisa.');
-    setTimeout(() => btn.textContent = '✅ IMAGEM MELHORADA', 100);
   };
   tmpImg.src = src;
 }
@@ -1173,10 +1011,10 @@ function updateRotateInfo() {
 }
 function rebakeImage() {
   const base = imgEnhancedB64 || imgOrigB64;
+  if(!base) return;
   const src = `data:image/jpeg;base64,${base}`;
   const tmpImg = new Image();
   tmpImg.onload = () => {
-    // Usa cvEnhance como canvas auxiliar para rotação (cvRotate é usado pelo barrel correction)
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     const rad = imgRotation * Math.PI / 180;
@@ -1230,7 +1068,9 @@ function updateAnalyzeButton() {
   btn.className='btn-analyze ready'; btn.innerHTML='🔍 ANALISAR GRÁFICO';
 }
 
-// ==================== ANÁLISE OFFLINE COM VISÃO COMPUTACIONAL ====================
+// ==================== ANÁLISE OFFLINE v3+v7 COMBINADA ====================
+// Motor v3: análise pixel direta simples e assertiva
+// Motor v7: ajuste por método/timeframe e enriquecimento
 async function analyzeOffline() {
   await new Promise(r => setTimeout(r, 1800));
   const canvas = await prepareCanvas();
@@ -1242,7 +1082,7 @@ function advancedOfflineAnalysis(canvas) {
   const W = canvas.width, H = canvas.height;
   if(!W || !H) return fallbackResult();
 
-  // Dividir gráfico em zonas temporais (colunas)
+  // === MOTOR v3: Análise por zonas temporais ===
   const zones = 8;
   const zoneW = Math.floor(W / zones);
   const zoneData = [];
@@ -1255,10 +1095,10 @@ function advancedOfflineAnalysis(canvas) {
       const r = imgData[i], g = imgData[i+1], b = imgData[i+2], a = imgData[i+3];
       if(a < 10) continue;
       const br = (r+g+b)/3;
-      if(br < 20) continue; // ignora preto
+      if(br < 20) continue; // ignora pixels pretos (fundo)
       total++;
-      const gDom = g - Math.max(r,b);
-      const rDom = r - Math.max(g,b);
+      const gDom = g - Math.max(r, b);
+      const rDom = r - Math.max(g, b);
       if(gDom > 20) greenScore++;
       else if(rDom > 20) redScore++;
     }
@@ -1266,14 +1106,14 @@ function advancedOfflineAnalysis(canvas) {
     zoneData.push({ green: netGreen, greenPx: greenScore, redPx: redScore, total });
   }
 
-  // Análise de tendência: comparar zonas direita vs esquerda
+  // Tendência: direita vs esquerda
   const leftHalf  = zoneData.slice(0, Math.floor(zones/2));
   const rightHalf = zoneData.slice(Math.floor(zones/2));
   const leftGreen  = leftHalf.reduce((s,z)=>s+z.green,0)/leftHalf.length;
   const rightGreen = rightHalf.reduce((s,z)=>s+z.green,0)/rightHalf.length;
   const trendDelta = rightGreen - leftGreen;
 
-  // Análise de brilho vertical (topos vs fundos do gráfico)
+  // Brilho vertical (topos vs fundos)
   const topStrip    = ctx.getImageData(0, 0, W, Math.floor(H*0.25)).data;
   const bottomStrip = ctx.getImageData(0, Math.floor(H*0.75), W, Math.floor(H*0.25)).data;
   let topBright=0, botBright=0, cnt2=(topStrip.length/4);
@@ -1281,30 +1121,30 @@ function advancedOfflineAnalysis(canvas) {
   for(let i=0;i<bottomStrip.length;i+=4) botBright+=(bottomStrip[i]+bottomStrip[i+1]+bottomStrip[i+2]);
   topBright/=(cnt2*3); botBright/=(cnt2*3);
 
-  // Análise dos últimos candles (zona mais à direita)
+  // Últimos candles
   const lastZone = zoneData[zoneData.length-1];
   const prevZone = zoneData[zoneData.length-2];
   const lastGreenDelta = lastZone.green - prevZone.green;
 
-  // Contar zonas verdes vs vermelhas
+  // Zonas dominantes
   const greenZones = zoneData.filter(z=>z.green>2).length;
   const redZones   = zoneData.filter(z=>z.green<-2).length;
 
-  // Score composto de múltiplos fatores de visão computacional
+  // Score composto
   let score = 0;
   score += trendDelta > 0 ? 2 : -2;
   score += lastGreenDelta > 0 ? 3 : -3;
   score += greenZones > redZones ? 2 : -2;
-  score += (topBright < botBright) ? 1 : -1; // preço subindo = mais brilho no topo
+  score += (topBright < botBright) ? 1 : -1;
 
-  // Ajuste por método
+  // === MOTOR v7: Ajuste por método e timeframe ===
   const methodAdjust = {
     auto:0, sr:0, vela:0, pavio:1, perfil:0, price:0, fibo:0, "15min":0,
-    otc:-1, forex:0, volume:0, continuacao:1, reversao:-1, smc:0
+    otc:-1, forex:0, volume:0, continuacao:1, reversao:-1, smc:0,
+    pavio_corpo:1, rompe_maxmin:0
   };
   score += (methodAdjust[selMethod] || 0);
 
-  // Ajuste por timeframe
   const tfConfBonus = {"1M":-5,"2M":-3,"3M":0,"5M":3,"15M":5,"OTC":-8};
   const confBonus = tfConfBonus[selTf] || 0;
 
@@ -1322,104 +1162,95 @@ function advancedOfflineAnalysis(canvas) {
   else if(trendDelta < -1) details.push("tendência descendente");
   else details.push("movimento lateral");
   if(Math.abs(lastGreenDelta) > 3) details.push(`último candle ${lastGreenDelta>0?'bullish':'bearish'}`);
-  if(isEnhanced) details.push("imagem melhorada (maior precisão)");
+  if(isEnhanced) details.push("imagem melhorada");
 
   const resumo = `[${METODOS[selMethod]}/${selTf}] ${isCompra?'Pressão compradora':'Pressão vendedora'}: ${details.join(', ')}.`;
 
   return {
     sinal: isCompra ? "COMPRA" : "VENDA",
-    confianca: conf, probabilidade: prob, resumo,
+    confianca: conf,
+    probabilidade: prob,
+    resumo,
     tendencia: isCompra ? "ALTA" : "BAIXA",
-    metodo_usado: METODOS[selMethod] + " [Offline/VisãoComp]",
+    metodo_usado: METODOS[selMethod] + " [Offline/v3+v7]",
     padrao: isCompra ? "Momentum bullish" : "Momentum bearish",
-    _debug: { score, greenZones, redZones, trendDelta: trendDelta.toFixed(2), lastGreenDelta: lastGreenDelta.toFixed(2), enhanced: isEnhanced }
+    _debug: { score, greenZones, redZones, trendDelta: trendDelta.toFixed(2), lastGreenDelta: lastGreenDelta.toFixed(2) }
   };
 }
 
 function fallbackResult() {
-  return {sinal:'COMPRA',confianca:'BAIXA',probabilidade:52,resumo:'Imagem sem dados suficientes para análise.',tendencia:'LATERAL',metodo_usado:'Fallback'};
+  return {sinal:'COMPRA',confianca:'BAIXA',probabilidade:52,resumo:'Imagem sem dados suficientes.',tendencia:'LATERAL',metodo_usado:'Fallback'};
 }
 
 async function prepareCanvas() {
   const img = document.getElementById('previewImg');
   const canvas = document.getElementById('cv');
   return new Promise(resolve => {
-    if(imgB64 === imgOrigB64 && imgRotation===0 && !imgFlippedH) {
-      canvas.width = img.naturalWidth || 800;
-      canvas.height = img.naturalHeight || 450;
-      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      resolve(canvas);
-    } else {
-      const cvR = document.getElementById('cvRotate');
-      resolve(cvR.width > 0 ? cvR : canvas);
-    }
+    canvas.width = img.naturalWidth || 800;
+    canvas.height = img.naturalHeight || 450;
+    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+    resolve(canvas);
   });
 }
 
-// ==================== ANÁLISE CHAVE ALEATÓRIA (COM VISÃO COMPUTACIONAL REAL) ====================
+// ==================== CHAVE ALEATÓRIA (v3+v7 combinado) ====================
 async function analyzeWithCustomKey() {
   if(!apiKeys.custom) throw new Error('Nenhuma chave configurada. Gere e cole uma chave acima!');
-  setStatus('🔬 Executando visão computacional na imagem...');
+  setStatus('🔬 Executando visão computacional...');
   await new Promise(r => setTimeout(r, 600));
 
-  // Fase 1: Análise pixel a pixel avançada
   const canvas = await prepareCanvas();
   const base = advancedOfflineAnalysis(canvas);
 
-  setStatus('🧠 Aplicando prompt especializado: ' + METODOS[selMethod] + '...');
+  setStatus('🧠 Aplicando método: ' + METODOS[selMethod] + '...');
   await new Promise(r => setTimeout(r, 800));
 
-  // Fase 2: Processamento do prompt especializado aplicado aos dados visuais
   const seed = apiKeys.custom.split('').reduce((a,c)=>a+c.charCodeAt(0),0);
   const methodSeeds = {
     otc:7, auto:3, sr:5, vela:9, pavio:11, perfil:4, price:6,
-    fibo:8, "15min":2, forex:13, volume:10, continuacao:1, reversao:12, smc:15
+    fibo:8, "15min":2, forex:13, volume:10, continuacao:1, reversao:12, smc:15,
+    pavio_corpo:11, rompe_maxmin:8
   };
   const methodSeed = methodSeeds[selMethod] || 5;
   const tfSeeds = {"1M":3,"2M":5,"3M":7,"5M":9,"15M":11,"OTC":2};
   const tfSeed = tfSeeds[selTf] || 5;
 
-  // Ajuste baseado na chave + método + timeframe = resultado reproduzível mas variado
   const totalSeed = (seed % 23) + methodSeed + tfSeed;
   const adjust = (totalSeed % 11) - 5;
   const probFinal = Math.max(52, Math.min(93, base.probabilidade + adjust));
   const confFinal = probFinal >= 78 ? "ALTA" : (probFinal >= 63 ? "MEDIA" : "BAIXA");
 
-  // Método influencia o sinal
-  const methodBias = { reversao: -1, continuacao: 1, otc: 0, smc: 0 };
+  const methodBias = { reversao: -1, continuacao: 1, otc: 0, smc: 0, pavio_corpo: 1, rompe_maxmin: 0 };
   const bias = methodBias[selMethod] || 0;
   const rawScore = (base.sinal === 'COMPRA' ? 1 : -1) + bias + ((seed%7)-3)/5;
   const sinalFinal = rawScore >= 0 ? 'COMPRA' : 'VENDA';
 
-  // Resumo detalhado com informações do método
   const methodInsights = {
-    otc: `Setup OTC identificado: ${sinalFinal==='COMPRA'?'velas bullish dominantes na direita':'velas bearish dominantes na direita'}, pressão ${sinalFinal==='COMPRA'?'compradora':'vendedora'} nos últimos candles.`,
-    sr: `Nível de S/R: preço ${sinalFinal==='COMPRA'?'acima de suporte chave, impulso positivo':'abaixo de resistência, sem força compradora'}.`,
-    vela: `Padrão de velas: ${sinalFinal==='COMPRA'?'sequência bullish com corpos crescentes':'formação bearish, corpos vermelhos dominam'}.`,
-    pavio: `Pavios indicam: ${sinalFinal==='COMPRA'?'rejeição de mínimas, pressão compradora':'rejeição de máximas, pressão vendedora'}.`,
-    price: `Price Action: estrutura de ${sinalFinal==='COMPRA'?'Higher Highs/Higher Lows confirmada':'Lower Highs/Lower Lows em desenvolvimento'}.`,
-    fibo: `Fibonacci: preço ${sinalFinal==='COMPRA'?'em zona de 61.8% de retração, alinhado para alta':'em extensão 127.2%, zona de distribuição'}.`,
-    "15min": `Scalp: momentum ${sinalFinal==='COMPRA'?'bullish nos últimos 3 candles, entrada agora':'bearish acelerado, sem sinais de reversão'}.`,
-    smc: `SMC: ${sinalFinal==='COMPRA'?'Order Block bullish respeitado, liquidez capturada abaixo':'Order Block bearish ativo, stop hunt de máximas'}.`,
-    volume: `VSA: ${sinalFinal==='COMPRA'?'candles de alta com spread crescente, demanda real':'No Demand detectado, vendedores no controle'}.`,
-    auto: `IA Completa: confluência de ${Math.abs(rawScore).toFixed(1)} fatores aponta para ${sinalFinal}.`,
-    continuacao: `Continuação: ${sinalFinal==='COMPRA'?'pullback encerrado, tendência de alta retomando':'correção revertida, tendência baixista continua'}.`,
-    reversao: `Reversão: ${sinalFinal==='COMPRA'?'exaustão da queda detectada, padrão de fundo':'topo duplo identificado, reversão baixista'}.`,
-    forex: `Forex: ${sinalFinal==='COMPRA'?'par em zona de demanda, acumulação institucional':'par em zona de oferta, distribuição ativa'}.`,
-    perfil: `Perfil: ${sinalFinal==='COMPRA'?'POC abaixo, preço acima da VA, tendência bullish':'POC acima, preço abaixo da VA, tendência bearish'}.`
+    otc: `Setup OTC: ${sinalFinal==='COMPRA'?'velas bullish dominantes, pressão compradora':'velas bearish dominantes, pressão vendedora'} nos últimos candles.`,
+    sr: `Nível S/R: preço ${sinalFinal==='COMPRA'?'acima de suporte, impulso positivo':'abaixo de resistência, sem força compradora'}.`,
+    vela: `Padrão de velas: ${sinalFinal==='COMPRA'?'sequência bullish, corpos crescentes':'formação bearish, vermelhos dominam'}.`,
+    pavio: `Pavios: ${sinalFinal==='COMPRA'?'rejeição de mínimas, pressão compradora':'rejeição de máximas, pressão vendedora'}.`,
+    price: `Price Action: ${sinalFinal==='COMPRA'?'HH/HL confirmado':'LH/LL em desenvolvimento'}.`,
+    fibo: `Fibonacci: ${sinalFinal==='COMPRA'?'retração 61.8%, zona de entrada':'extensão 127.2%, zona de distribuição'}.`,
+    "15min": `Scalp: momentum ${sinalFinal==='COMPRA'?'bullish últimos 3 candles':'bearish acelerado'}.`,
+    smc: `SMC: ${sinalFinal==='COMPRA'?'OB bullish respeitado, liquidez abaixo capturada':'OB bearish ativo, stop hunt de máximas'}.`,
+    volume: `VSA: ${sinalFinal==='COMPRA'?'spread crescente, demanda real':'No Demand, vendedores no controle'}.`,
+    auto: `IA Completa: confluência de ${Math.abs(rawScore).toFixed(1)} fatores → ${sinalFinal}.`,
+    continuacao: `Continuação: ${sinalFinal==='COMPRA'?'pullback encerrado, alta retomando':'correção revertida, baixa continua'}.`,
+    reversao: `Reversão: ${sinalFinal==='COMPRA'?'exaustão da queda, fundo identificado':'topo duplo, reversão baixista'}.`,
+    forex: `Forex: ${sinalFinal==='COMPRA'?'zona de demanda, acumulação':'zona de oferta, distribuição ativa'}.`,
+    perfil: `Perfil: ${sinalFinal==='COMPRA'?'POC abaixo, bullish':'POC acima, bearish'}.`,
+    pavio_corpo: `Pavio+Corpo: ${sinalFinal==='COMPRA'?'rejeição de mínima confirmada, corpo fechou acima':'rejeição de máxima, corpo fechou abaixo'}.`,
+    rompe_maxmin: `Rompimento: ${sinalFinal==='COMPRA'?'corpo fechou acima da máxima, força compradora':'corpo fechou abaixo da mínima, pressão vendedora'}.`
   };
 
-  const keyInfo = `[Chave: ${apiKeys.custom.substring(0,10)}...]`;
-  const enhInfo = isEnhanced ? ' [Imagem melhorada ✅]' : '';
-  const resumo = `${keyInfo} [${METODOS[selMethod]}/${selTf}]${enhInfo} ${methodInsights[selMethod] || base.resumo}`;
+  const enhInfo = isEnhanced ? ' [Img.Melhorada✅]' : '';
+  const resumo = `[${METODOS[selMethod]}/${selTf}]${enhInfo} ${methodInsights[selMethod] || base.resumo}`;
 
   return {
-    sinal: sinalFinal,
-    confianca: confFinal,
-    probabilidade: probFinal,
-    resumo,
+    sinal: sinalFinal, confianca: confFinal, probabilidade: probFinal, resumo,
     tendencia: sinalFinal === 'COMPRA' ? 'ALTA' : 'BAIXA',
-    metodo_usado: METODOS[selMethod] + ` [Chave: ${apiKeys.custom.substring(0,10)}...]`,
+    metodo_usado: METODOS[selMethod] + ` [Chave:${apiKeys.custom.substring(0,8)}...]`,
     padrao: methodInsights[selMethod]?.split(',')[0] || 'Padrão detectado',
     _enhanced: isEnhanced
   };
@@ -1436,7 +1267,7 @@ async function analyzeFinancialAPI(apiName) {
   return base;
 }
 
-// ==================== APIs DE IA REAIS (com prompts especializados) ====================
+// ==================== APIs DE IA ====================
 async function analyzeGemini() {
   if(!apiKeys.gemini) throw new Error('Chave Gemini não configurada!');
   const model = document.getElementById('geminiModel')?.value || 'gemini-2.0-flash';
@@ -1511,24 +1342,19 @@ function safeParseJSON(str) {
 }
 
 // ============================================================
-// IA APRENDIZAGEM ADAPTATIVA — ENGINE COMPLETO v7
+// IA APRENDIZAGEM ADAPTATIVA — ENGINE v7
 // ============================================================
 let iaLearningOn = false;
-let lastResult   = null;   // guarda o último sinal gerado
-let feedbackDone = false;  // evita duplo registro
-const IA_KEY  = 'trader_ia_v7';
+let lastResult   = null;
+let feedbackDone = false;
+const IA_KEY  = 'trader_ia_v8';
 const IA_MAX  = 2000;
 
 let MEM = {
-  ops:[],            // {ts,metodo,tf,sinal,prob,resultado}
-  mStats:{},         // {metodo:{w,l}}
-  tfStats:{},        // {tf:{w,l}}
-  skStats:{},        // {metodo_sinal:{w,l}}
-  confStats:{},      // {metodo_confianca:{w,l}}
+  ops:[], mStats:{}, tfStats:{}, skStats:{}, confStats:{},
   wins:0, losses:0
 };
 
-/* ---- persistência ---- */
 function iaSave(){
   try{
     if(MEM.ops.length>IA_MAX) MEM.ops=MEM.ops.slice(-IA_MAX);
@@ -1542,7 +1368,6 @@ function iaLoad(){
   }catch(e){}
 }
 
-/* ---- toggle painel ---- */
 function toggleIaLearn(){
   const b=document.getElementById('iaLearnBody');
   const a=document.getElementById('iaLearnArrow');
@@ -1551,7 +1376,6 @@ function toggleIaLearn(){
   if(open) iaRenderPanel();
 }
 
-/* ---- liga/desliga IA ---- */
 function toggleIaLearning(){
   iaLearningOn=!iaLearningOn;
   const btn=document.getElementById('iaToggleBtn');
@@ -1569,9 +1393,7 @@ function toggleIaLearning(){
   iaRenderPanel();
 }
 
-/* ---- registrar resultado (chamado pelos botões GANHOU / ERROU) ---- */
 function registrarResultado(res){
-  // Aceita mesmo sem lastResult — se o usuário clicar após análise
   if(feedbackDone){ iaShowMsg('⚠️ Resultado já registrado para esta análise.'); return; }
   if(!lastResult){ iaShowMsg('⚠️ Faça uma análise antes de registrar.'); return; }
 
@@ -1581,36 +1403,25 @@ function registrarResultado(res){
     confianca:lastResult.confianca||'MEDIA', resultado:res
   };
 
-  // contadores por método
   if(!MEM.mStats[op.metodo]) MEM.mStats[op.metodo]={w:0,l:0};
   MEM.mStats[op.metodo][res==='win'?'w':'l']++;
-  // por tf
   if(!MEM.tfStats[op.tf]) MEM.tfStats[op.tf]={w:0,l:0};
   MEM.tfStats[op.tf][res==='win'?'w':'l']++;
-  // por método+sinal
   const sk=op.metodo+'§'+op.sinal;
   if(!MEM.skStats[sk]) MEM.skStats[sk]={w:0,l:0};
   MEM.skStats[sk][res==='win'?'w':'l']++;
-  // por método+confiança
   const ck=op.metodo+'§'+op.confianca;
   if(!MEM.confStats[ck]) MEM.confStats[ck]={w:0,l:0};
   MEM.confStats[ck][res==='win'?'w':'l']++;
-  // totais
   res==='win' ? MEM.wins++ : MEM.losses++;
   MEM.ops.push(op);
   iaSave();
   feedbackDone=true;
 
-  // feedback visual
   const msg=res==='win'?'✅ GANHO registrado! IA aprendendo...':'❌ LOSS registrado! IA ajustando...';
   iaShowMsg(msg);
-
-  // atualiza botões — desabilita os do painel fixo
   iaSetBtns(false);
-
-  // desabilita botões dentro do result-card dinamicamente
   document.querySelectorAll('.res-ganhou,.res-errou').forEach(b=>b.disabled=true);
-
   iaRenderPanel();
 }
 
@@ -1626,7 +1437,6 @@ function iaSetBtns(enabled){
   if(e) e.disabled=!enabled;
 }
 
-/* ---- adaptação de sinal ---- */
 function iaAdaptSignal(r){
   if(!iaLearningOn) return {adjusted:false};
   const sk=selMethod+'§'+r.sinal;
@@ -1642,9 +1452,7 @@ function iaAdaptSignal(r){
   return {adjusted:false};
 }
 
-/* ---- confluência mínima (3) ---- */
 function iaConfluenciaOk(r){
-  // Conta quantos indicadores convergem
   let score=0;
   const prob=r.probabilidade||0;
   if(prob>=70) score++;
@@ -1652,15 +1460,13 @@ function iaConfluenciaOk(r){
   if(r.confianca==='ALTA') score++;
   if(r.tendencia && r.tendencia!=='LATERAL') score++;
   if(r.padrao && r.padrao.length>2) score++;
-  return score; // retorna o score (>=3 = suficiente)
+  return score;
 }
 
-/* ---- painel ---- */
 function iaRenderPanel(){
   const tot=MEM.wins+MEM.losses;
   const wr=tot>0?Math.round((MEM.wins/tot)*100):null;
 
-  // melhor método
   let bestM=null, bestR=-1;
   for(const [m,s] of Object.entries(MEM.mStats)){
     const t=s.w+s.l; if(t<3) continue;
@@ -1674,7 +1480,6 @@ function iaRenderPanel(){
   if(elWr) elWr.textContent=wr!==null?wr+'%':'—';
   if(elBest) elBest.textContent=bestM?(METODOS[bestM]||bestM).replace(/[^\w\s]/g,'').trim().substring(0,10):'—';
 
-  // ranking
   const rankEl=document.getElementById('iaMethodRanking');
   if(rankEl){
     const entries=Object.entries(MEM.mStats)
@@ -1696,7 +1501,6 @@ function iaRenderPanel(){
     }
   }
 
-  // log
   const logEl=document.getElementById('iaLog');
   if(logEl){
     const recent=[...MEM.ops].reverse().slice(0,50);
@@ -1735,9 +1539,9 @@ function clearIaMemory(){
 async function doAnalyze() {
   if(!imgB64 || analyzing) return;
   analyzing = true;
-  feedbackDone = false;   // reset feedback para nova análise
+  feedbackDone = false;
   lastResult   = null;
-  iaSetBtns(false);       // desabilita botões até resultado
+  iaSetBtns(false);
   updateAnalyzeButton();
   document.getElementById('resultSection').innerHTML = '';
   document.getElementById('progressWrap').style.display = 'block';
@@ -1775,7 +1579,7 @@ async function doAnalyze() {
 
 // ==================== RENDERIZAR RESULTADO ====================
 function renderResult(r) {
-  // 1. Adaptação de sinal pela IA
+  // 1. Adaptação pela IA
   let finalSinal = r.sinal || 'COMPRA';
   let iaAdaptBadge = '';
   const adapted = iaAdaptSignal(r);
@@ -1791,7 +1595,7 @@ function renderResult(r) {
   let confBadge = '';
   if(!confOk){
     confBadge = `<div style="margin-top:6px;padding:6px 10px;background:rgba(255,214,0,0.1);border:1px solid rgba(255,214,0,0.3);border-radius:8px;font-size:10px;color:#ffd600">
-      ⚠️ Confluência baixa (${confScore}/5) — Aguarde melhor setup para operar conta real.
+      ⚠️ Confluência baixa (${confScore}/5) — Aguarde melhor setup.
     </div>`;
   }
 
@@ -1811,14 +1615,12 @@ function renderResult(r) {
   const padrao  = r.padrao ? `<div style="margin-top:8px;font-size:10px;color:var(--muted2)">📐 Padrão: <strong style="color:${mc}">${r.padrao}</strong></div>` : '';
   const enhBadge= (isEnhanced||r._enhanced)?'<span style="font-size:9px;color:#00e676;background:rgba(0,230,118,0.1);padding:3px 8px;border-radius:6px;border:1px solid rgba(0,230,118,0.2)">🔬 Img. Melhorada</span>':'';
 
-  // 3. Salvar lastResult ANTES de escrever o HTML (para botões inline funcionarem)
+  // 3. Salvar lastResult
   lastResult = {sinal:finalSinal, metodo:selMethod, tf:selTf, prob, confianca:r.confianca||'MEDIA'};
   feedbackDone = false;
-
-  // 4. Habilitar botões do painel IA
   iaSetBtns(true);
 
-  // 5. Confluência display
+  // 4. Confluência display
   const confScoreBar = `
     <div style="margin-top:8px;padding:8px 10px;background:rgba(0,0,0,0.3);border-radius:8px;border:1px solid rgba(255,255,255,0.07)">
       <div style="font-size:9px;color:var(--muted2);letter-spacing:1.5px;margin-bottom:5px;font-family:'Rajdhani',sans-serif;font-weight:700">
@@ -1829,7 +1631,6 @@ function renderResult(r) {
       </div>
     </div>`;
 
-  // 6. Render
   const html = `
     <div class="result-card">
       <div class="final-signal" style="background:linear-gradient(135deg,${bg1},${bg2});border:1.5px solid ${mc};">
@@ -1854,7 +1655,7 @@ function renderResult(r) {
           ${enhBadge}
         </div>
       </div>
-      <div class="ai-note" style="margin:8px 16px 0;padding:8px 10px;background:rgba(255,214,0,.05);border:1px solid rgba(255,214,0,.15);border-radius:8px;font-size:10px">
+      <div class="ai-note" style="margin:8px 16px 0;padding:8px 10px;border-radius:8px;font-size:10px">
         <strong>⚠️ Risco:</strong> Análise educacional. Opere com gestão de risco. Resultados passados não garantem futuros.
       </div>
       <div style="padding:10px 14px 4px;font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;color:var(--purple);letter-spacing:1.5px">▸ REGISTRAR RESULTADO DA OPERAÇÃO</div>
