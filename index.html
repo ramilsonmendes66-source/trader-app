@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
-<title>TRADER PHOTO I.A PRO v9.1 - Sem Distorção</title>
+<title>TRADER PHOTO I.A PRO v9.2 - Câmera Wide + Motor v10</title>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -177,7 +177,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
 .progress-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--cyan),var(--green));background-size:200%;animation:shimmer 1.5s linear infinite;transition:width .4s ease;width:0%}
 .error-box{margin:10px 14px 0;padding:11px 14px;background:rgba(255,23,68,.07);border:1px solid rgba(255,23,68,.25);border-radius:12px;font-size:11px;color:#ff6b6b;display:none}
 
-/* ===== CÂMERA SEM DISTORÇÃO ===== */
+/* ===== CÂMERA v2 WIDE — SEM DISTORÇÃO, CAPTURA HORIZONTAL ===== */
 #camOverlay{
   display:none;
   position:fixed;inset:0;z-index:999;
@@ -186,17 +186,15 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
 }
 #camOverlay.on{display:flex}
 
-/* Vídeo SEM distorção: contain preserva proporção real */
+/* cover = preenche tela inteira, captura wide horizontal */
 #liveVid{
   position:absolute;
   inset:0;
   width:100%;
   height:100%;
-  /* contain = sem corte, sem esticamento, sem efeito lente */
-  object-fit:contain;
+  object-fit:cover;
   display:block;
   background:#000;
-  /* Desativa qualquer transformação automática do browser */
   transform:none;
   transform-origin:center center;
 }
@@ -246,14 +244,16 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
   cursor:pointer;
 }
 
-/* Frame ocupa toda a área central entre top e bottom bar */
+/* Frame WIDE 16:9 — ocupa área central capturando toda a tela */
 .cam-frame{
-  flex:1;
-  width:100%;
+  width:96%;
+  max-width:900px;
+  aspect-ratio:16/9;
   position:relative;
   overflow:hidden;
-  /* Borda sutil verde sem fundo */
   box-shadow:inset 0 0 0 2px rgba(0,230,118,0.5);
+  border-radius:6px;
+  flex-shrink:0;
 }
 
 /* Cantos decorativos */
@@ -383,27 +383,27 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
 <div class="bg-grid"></div>
 <div class="bg-glow"></div>
 
-<!-- CÂMERA CORRIGIDA -->
+<!-- CÂMERA v2 — WIDE HORIZONTAL COMPLETO -->
 <div id="camOverlay">
   <video id="liveVid" autoplay playsinline muted></video>
   <div class="cam-flash" id="camFlash"></div>
   <div class="cam-ui">
     <div class="cam-top-bar">
-      <div class="cam-label" id="camLabel">📷 APONTE PARA O GRÁFICO</div>
+      <div class="cam-label" id="camLabel">📷 TRASEIRA • WIDE 16:9</div>
       <div class="cam-close" onclick="closeCamera()">✕</div>
     </div>
-    <!-- Frame: ocupa toda a área central = captura só o gráfico -->
+    <!-- Frame WIDE 16:9 para capturar tela inteira do PC -->
     <div class="cam-frame" id="camFrame">
       <div class="cam-corner-tr"></div>
       <div class="cam-corner-bl"></div>
       <div class="cam-scanline-h"></div>
       <div class="cam-scanline-v"></div>
-      <div class="cam-frame-label">📊 ENQUADRE O GRÁFICO COMPLETO</div>
+      <div class="cam-frame-label">📊 ENQUADRE TODOS OS CANDLES</div>
     </div>
     <div class="cam-bottom-bar">
-      <div class="cam-mode-toggle" onclick="toggleCamFacing()">🔄<br><span style="font-size:9px">VIRAR</span></div>
+      <div class="cam-mode-toggle" onclick="toggleCamFacing()">🔄<br><span style="font-size:9px">CÂMERA</span></div>
       <div class="cam-shutter" onclick="shootPhoto()">📸</div>
-      <div class="cam-mode-toggle" onclick="toggleCamFacing()">⊞<br><span style="font-size:9px">MODO</span></div>
+      <div class="cam-mode-toggle" onclick="toggleCamAspect()">⛶<br><span style="font-size:9px">MODO</span></div>
     </div>
   </div>
 </div>
@@ -415,10 +415,10 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
       <div class="logo-hex">📊</div>
       <div>
         <div class="logo-name">TRADER PHOTO I.A</div>
-        <div class="logo-tag">v9.1 • Captura Reta • Sem Distorção • 16 Métodos • 9 Modos</div>
+        <div class="logo-tag">v9.2 • Wide Camera • Motor v10 • Alta Assertividade • 16 Métodos</div>
       </div>
     </div>
-    <div class="pro-badge">PRO v9</div>
+    <div class="pro-badge">PRO v9.2</div>
   </div>
   <div class="header-live">
     <div class="live-dot"></div>
@@ -597,14 +597,12 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
   </div>
 </div>
 
-<!-- CONTROLES DA IMAGEM -->
+<!-- CONTROLES DA IMAGEM — apenas rotação + melhorar -->
 <div class="img-controls" id="imgControls">
   <button class="btn-enhance" id="btnEnhance" onclick="enhanceImage()">🔬 MELHORAR IMAGEM</button>
   <button class="btn-img-ctrl" onclick="rotateImage(-90)">↺ -90°</button>
   <button class="btn-img-ctrl" onclick="rotateImage(90)">↻ +90°</button>
   <button class="btn-img-ctrl" onclick="rotateImage(180)">⟳ 180°</button>
-  <button class="btn-img-ctrl" id="btnFlipH" onclick="flipImage('h')">⇆ Espelhar</button>
-  <button class="btn-img-ctrl" onclick="toggleAspect()">⛶ 16:9/4:3</button>
 </div>
 <div class="enhance-info" id="enhanceInfo">✅ Imagem melhorada! Nitidez +40%, Contraste +35%, candles otimizados.</div>
 <div class="rotate-info" id="rotateInfo" style="display:none">
@@ -634,7 +632,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Ex
 </div>
 
 <div id="resultSection"></div>
-<div class="footer-note">TRADER PHOTO I.A PRO v9 • Preview Gráfico Perfeito • IA Adaptativa v3+v7 • 16 Métodos • 9 Modos</div>
+<div class="footer-note">TRADER PHOTO I.A PRO v9.2 • Wide Camera v2 • Motor Assertivo v10 • Filtro Confluência • 16 Métodos • 9 Modos</div>
 </div></div>
 
 <script>
@@ -824,7 +822,9 @@ function setMode(mode) {
   chip.className = `mode-chip ${chipClass[mode]||'offline'}`;
 }
 
-// ==================== CÂMERA CORRIGIDA ====================
+// ==================== CÂMERA v2 — WIDE HORIZONTAL ====================
+let camAspectWide = true; // padrão: wide 16:9
+
 async function openCamera() {
   try {
     const constraints = {
@@ -852,9 +852,20 @@ function toggleCamFacing() {
   openCamera();
 }
 
+function toggleCamAspect() {
+  camAspectWide = !camAspectWide;
+  const frame = document.getElementById('camFrame');
+  if(frame) {
+    frame.style.aspectRatio = camAspectWide ? '16/9' : '4/3';
+    frame.style.maxWidth    = camAspectWide ? '900px' : '600px';
+  }
+  updateCamLabel();
+}
+
 function updateCamLabel() {
   const facing = camFacing === 'environment' ? 'TRASEIRA' : 'FRONTAL';
-  document.getElementById('camLabel').textContent = `📷 ${facing} • APONTE PARA O GRÁFICO`;
+  const asp    = camAspectWide ? 'WIDE 16:9' : '4:3';
+  document.getElementById('camLabel').textContent = `📷 ${facing} • ${asp}`;
 }
 
 function closeCamera() {
@@ -863,12 +874,11 @@ function closeCamera() {
   document.getElementById('camOverlay').classList.remove('on');
 }
 
-// ==================== CAPTURA DE FOTO — SEM DISTORÇÃO ====================
+// ==================== CAPTURA DE FOTO — FULL RESOLUTION SEM DISTORÇÃO ====================
 function shootPhoto() {
   const video = document.getElementById('liveVid');
   const canvas = document.getElementById('cv');
 
-  // Usa SEMPRE as dimensões nativas do sensor da câmera
   const vW = video.videoWidth;
   const vH = video.videoHeight;
 
@@ -877,49 +887,41 @@ function shootPhoto() {
     return;
   }
 
-  // Canvas exatamente com as dimensões nativas — SEM escalar, SEM distorcer
+  // Canvas nas dimensões nativas do sensor — sem crop, sem distorção
   canvas.width  = vW;
   canvas.height = vH;
   const ctx = canvas.getContext('2d');
-
-  // Fundo preto limpo antes de desenhar
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, vW, vH);
-
-  // Desenha o frame exato do vídeo nas dimensões reais
-  // SEM nenhum crop, SEM scale, SEM transform
   ctx.drawImage(video, 0, 0, vW, vH);
 
-  // Flash
   const flash = document.getElementById('camFlash');
   flash.classList.add('on');
   setTimeout(() => flash.classList.remove('on'), 150);
 
   const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
-  imgOrigB64 = dataUrl.split(',')[1];
-  imgB64 = imgOrigB64;
+  imgOrigB64    = dataUrl.split(',')[1];
+  imgB64        = imgOrigB64;
   imgEnhancedB64 = null;
-  isEnhanced = false;
-  imgRotation = 0;
-  imgFlippedH = false;
+  isEnhanced    = false;
+  imgRotation   = 0;
+  imgFlippedH   = false;
 
-  // Detecta proporção real da captura
+  // Detecta se é landscape (tela de PC horizontal)
   imgAspectWide = (vW >= vH);
 
   const previewBox = document.getElementById('previewBox');
   const previewImg = document.getElementById('previewImg');
 
-  // Reseta todos os estilos inline que possam distorcer
   previewImg.removeAttribute('style');
   previewImg.src = dataUrl;
-  previewImg.style.display = 'block';
-  previewImg.style.width   = '100%';
-  previewImg.style.height  = 'auto';
+  previewImg.style.display  = 'block';
+  previewImg.style.width    = '100%';
+  previewImg.style.height   = 'auto';
   previewImg.style.borderRadius = '0';
   previewImg.style.transform = 'none';
   previewImg.style.objectFit = 'fill';
 
-  // Container sem aspect-ratio forçado — altura definida pela imagem
   previewBox.className = 'preview-box has-image';
 
   document.getElementById('ph').style.display = 'none';
@@ -931,7 +933,7 @@ function shootPhoto() {
   document.getElementById('enhanceInfo').className = 'enhance-info';
   updateRotateInfo();
   closeCamera();
-  setStatus('✅ Foto capturada! Imagem reta e proporcional. Clique em 🔬 MELHORAR IMAGEM para análise mais precisa.');
+  setStatus('✅ Foto capturada em alta resolução (' + vW + 'x' + vH + ')! Clique em 🔬 MELHORAR IMAGEM.');
   updateAnalyzeButton();
 }
 
@@ -1179,11 +1181,12 @@ function updateAnalyzeButton() {
   btn.className='btn-analyze ready'; btn.innerHTML='🔍 ANALISAR GRÁFICO';
 }
 
-// ==================== ANÁLISE OFFLINE v3+v7 COMBINADA ====================
-// Motor v3: análise pixel direta simples e assertiva
-// Motor v7: ajuste por método/timeframe e enriquecimento
+// ==================== ANÁLISE OFFLINE v10 — MOTOR DE ALTA ASSERTIVIDADE ====================
+// Filosofia: SÓ gera sinal quando há CONFLUÊNCIA FORTE. Sem confluência → retorna AGUARDAR.
+// Isso reduz drásticamente o número de trades ruins.
+
 async function analyzeOffline() {
-  await new Promise(r => setTimeout(r, 1800));
+  await new Promise(r => setTimeout(r, 1200));
   const canvas = await prepareCanvas();
   return advancedOfflineAnalysis(canvas);
 }
@@ -1193,104 +1196,243 @@ function advancedOfflineAnalysis(canvas) {
   const W = canvas.width, H = canvas.height;
   if(!W || !H) return fallbackResult();
 
-  // === MOTOR v3: Análise por zonas temporais ===
-  const zones = 8;
-  const zoneW = Math.floor(W / zones);
-  const zoneData = [];
+  // ============================================================
+  // BLOCO 1: EXTRAÇÃO DE CANDLES POR COLUNAS (60 colunas = ~60 candles)
+  // ============================================================
+  const NUM_COLS = 60;
+  const colW     = Math.max(1, Math.floor(W / NUM_COLS));
+  const cols     = [];
 
-  for(let z = 0; z < zones; z++) {
-    const startX = z * zoneW;
-    const imgData = ctx.getImageData(startX, 0, zoneW, H).data;
-    let greenScore = 0, redScore = 0, total = 0;
-    for(let i = 0; i < imgData.length; i += 4) {
-      const r = imgData[i], g = imgData[i+1], b = imgData[i+2], a = imgData[i+3];
+  for(let c = 0; c < NUM_COLS; c++) {
+    const x    = c * colW;
+    const data = ctx.getImageData(x, 0, Math.min(colW, W - x), H).data;
+    let greenPx=0, redPx=0, total=0;
+    // Brilho no terço superior vs inferior (posição de preço)
+    const topH   = Math.floor(H * 0.33);
+    const botH   = Math.floor(H * 0.33);
+    const topD   = ctx.getImageData(x, 0, Math.min(colW, W-x), topH).data;
+    const botD   = ctx.getImageData(x, H-botH, Math.min(colW, W-x), botH).data;
+    let topBr=0, botBr=0, tCnt=topD.length/4, bCnt=botD.length/4;
+
+    for(let i = 0; i < data.length; i += 4) {
+      const r=data[i], g=data[i+1], b=data[i+2], a=data[i+3];
       if(a < 10) continue;
       const br = (r+g+b)/3;
-      if(br < 20) continue; // ignora pixels pretos (fundo)
+      if(br < 15) continue; // ignora fundo preto
       total++;
-      const gDom = g - Math.max(r, b);
-      const rDom = r - Math.max(g, b);
-      if(gDom > 20) greenScore++;
-      else if(rDom > 20) redScore++;
+      // Verde dominante = candle bullish
+      const gDom = g - Math.max(r*0.85, b);
+      // Vermelho dominante = candle bearish
+      const rDom = r - Math.max(g*0.85, b);
+      if(gDom > 18) greenPx++;
+      else if(rDom > 18) redPx++;
     }
-    const netGreen = total > 0 ? ((greenScore - redScore) / total) * 100 : 0;
-    zoneData.push({ green: netGreen, greenPx: greenScore, redPx: redScore, total });
+    for(let i=0;i<topD.length;i+=4) topBr += (topD[i]+topD[i+1]+topD[i+2]);
+    for(let i=0;i<botD.length;i+=4) botBr += (botD[i]+botD[i+1]+botD[i+2]);
+    topBr = tCnt>0 ? topBr/(tCnt*3) : 0;
+    botBr = bCnt>0 ? botBr/(bCnt*3) : 0;
+
+    const net = total>0 ? (greenPx-redPx)/total*100 : 0;
+    cols.push({ net, greenPx, redPx, total, topBr, botBr, bullish: net > 0 });
   }
 
-  // Tendência: direita vs esquerda
-  const leftHalf  = zoneData.slice(0, Math.floor(zones/2));
-  const rightHalf = zoneData.slice(Math.floor(zones/2));
-  const leftGreen  = leftHalf.reduce((s,z)=>s+z.green,0)/leftHalf.length;
-  const rightGreen = rightHalf.reduce((s,z)=>s+z.green,0)/rightHalf.length;
-  const trendDelta = rightGreen - leftGreen;
+  // ============================================================
+  // BLOCO 2: INDICADORES TÉCNICOS
+  // ============================================================
 
-  // Brilho vertical (topos vs fundos)
-  const topStrip    = ctx.getImageData(0, 0, W, Math.floor(H*0.25)).data;
-  const bottomStrip = ctx.getImageData(0, Math.floor(H*0.75), W, Math.floor(H*0.25)).data;
-  let topBright=0, botBright=0, cnt2=(topStrip.length/4);
-  for(let i=0;i<topStrip.length;i+=4) topBright+=(topStrip[i]+topStrip[i+1]+topStrip[i+2]);
-  for(let i=0;i<bottomStrip.length;i+=4) botBright+=(bottomStrip[i]+bottomStrip[i+1]+bottomStrip[i+2]);
-  topBright/=(cnt2*3); botBright/=(cnt2*3);
+  // A) TENDÊNCIA — regressão linear nos últimos 30 candles (metade direita)
+  const recentCols = cols.slice(-30);
+  let sumX=0, sumY=0, sumXY=0, sumX2=0, n=recentCols.length;
+  recentCols.forEach((c,i) => { sumX+=i; sumY+=c.net; sumXY+=i*c.net; sumX2+=i*i; });
+  const denom = n*sumX2 - sumX*sumX;
+  const slope = denom !== 0 ? (n*sumXY - sumX*sumY) / denom : 0;
+  const trendDir  = slope > 0.08 ? 'ALTA' : slope < -0.08 ? 'BAIXA' : 'LATERAL';
+  const trendStr  = Math.abs(slope); // força da tendência
 
-  // Últimos candles
-  const lastZone = zoneData[zoneData.length-1];
-  const prevZone = zoneData[zoneData.length-2];
-  const lastGreenDelta = lastZone.green - prevZone.green;
+  // B) MOMENTUM — últimos 5 candles
+  const last5      = cols.slice(-5);
+  const bullCount5 = last5.filter(c => c.net > 3).length;
+  const bearCount5 = last5.filter(c => c.net < -3).length;
+  const momentumBull = bullCount5 >= 3;
+  const momentumBear = bearCount5 >= 3;
 
-  // Zonas dominantes
-  const greenZones = zoneData.filter(z=>z.green>2).length;
-  const redZones   = zoneData.filter(z=>z.green<-2).length;
+  // C) ÚLTIMAS 3 VELAS — padrão imediato
+  const last3 = cols.slice(-3);
+  const allBull3 = last3.every(c => c.bullish);
+  const allBear3 = last3.every(c => !c.bullish);
+  const lastBull = cols[cols.length-1].bullish;
 
-  // Score composto
+  // D) ENGOLFO — último candle maior que anterior
+  const lastNet = Math.abs(cols[cols.length-1].net);
+  const prevNet = Math.abs(cols[cols.length-2]?.net || 0);
+  const engulfoUp   = lastBull  && lastNet > prevNet * 1.4 && !cols[cols.length-2].bullish;
+  const engulfoDn   = !lastBull && lastNet > prevNet * 1.4 && cols[cols.length-2].bullish;
+
+  // E) PIN BAR — rejeição via brilho topo vs base
+  const lc = cols[cols.length-1];
+  const pinBull = lc.botBr < lc.topBr * 0.75 && lastBull;  // rejeição de baixo
+  const pinBear = lc.topBr < lc.botBr * 0.75 && !lastBull; // rejeição de cima
+
+  // F) DIVERGÊNCIA — slope opõe ao último candle (cuidado!)
+  const divergence = (slope > 0.1 && !lastBull) || (slope < -0.1 && lastBull);
+
+  // G) POSIÇÃO DE PREÇO (brilho vertical — preço subindo = topo mais escuro que fundo)
+  const wholeTop = ctx.getImageData(0, 0, W, Math.floor(H*0.2)).data;
+  const wholeBot = ctx.getImageData(0, Math.floor(H*0.8), W, Math.floor(H*0.2)).data;
+  let wTopBr=0, wBotBr=0, wCnt=wholeTop.length/4;
+  for(let i=0;i<wholeTop.length;i+=4) wTopBr+=(wholeTop[i]+wholeTop[i+1]+wholeTop[i+2]);
+  for(let i=0;i<wholeBot.length;i+=4) wBotBr+=(wholeBot[i]+wholeBot[i+1]+wholeBot[i+2]);
+  wTopBr = wCnt>0 ? wTopBr/(wCnt*3) : 0;
+  wBotBr = wCnt>0 ? wBotBr/(wCnt*3) : 0;
+  const priceHigh = wBotBr > wTopBr * 1.05; // fundo mais brilhante = preço alto
+
+  // H) ZONAS DOMINANTES
+  const greenZones = cols.filter(c => c.net > 3).length;
+  const redZones   = cols.filter(c => c.net < -3).length;
+
+  // ============================================================
+  // BLOCO 3: SISTEMA DE PONTUAÇÃO COM PESOS
+  // Alto peso = confirmação forte; baixo peso = contribuição menor
+  // ============================================================
   let score = 0;
-  score += trendDelta > 0 ? 2 : -2;
-  score += lastGreenDelta > 0 ? 3 : -3;
-  score += greenZones > redZones ? 2 : -2;
-  score += (topBright < botBright) ? 1 : -1;
+  const signals = [];
 
-  // === MOTOR v7: Ajuste por método e timeframe ===
-  const methodAdjust = {
-    auto:0, sr:0, vela:0, pavio:1, perfil:0, price:0, fibo:0, "15min":0,
-    otc:-1, forex:0, volume:0, continuacao:1, reversao:-1, smc:0,
-    pavio_corpo:1, rompe_maxmin:0
+  // Tendência (peso 3)
+  if(trendDir === 'ALTA')   { score += 3; signals.push({label:'Tendência Alta', w:3}); }
+  if(trendDir === 'BAIXA')  { score -= 3; signals.push({label:'Tendência Baixa', w:3}); }
+  if(trendDir === 'LATERAL'){ score += 0; signals.push({label:'Lateral — atenção', w:0}); }
+
+  // Momentum (peso 2.5)
+  if(momentumBull){ score += 2.5; signals.push({label:'Momentum Bullish', w:2.5}); }
+  if(momentumBear){ score -= 2.5; signals.push({label:'Momentum Bearish', w:2.5}); }
+
+  // Padrão das últimas 3 velas (peso 2)
+  if(allBull3){ score += 2; signals.push({label:'3 velas bullish', w:2}); }
+  if(allBear3){ score -= 2; signals.push({label:'3 velas bearish', w:2}); }
+
+  // Engolfo (peso 4 — muito forte)
+  if(engulfoUp){ score += 4; signals.push({label:'Engolfo Bullish ★', w:4}); }
+  if(engulfoDn){ score -= 4; signals.push({label:'Engolfo Bearish ★', w:4}); }
+
+  // Pin Bar (peso 3)
+  if(pinBull){ score += 3; signals.push({label:'Pin Bar Bullish', w:3}); }
+  if(pinBear){ score -= 3; signals.push({label:'Pin Bar Bearish', w:3}); }
+
+  // Domínio de zonas (peso 1.5)
+  if(greenZones > redZones + 10){ score += 1.5; signals.push({label:`Verde domina (${greenZones}z)`, w:1.5}); }
+  if(redZones > greenZones + 10){ score -= 1.5; signals.push({label:`Vermelho domina (${redZones}z)`, w:1.5}); }
+
+  // Posição de preço (peso 1)
+  if(priceHigh && score > 0){ score += 1; signals.push({label:'Preço em zona alta', w:1}); }
+
+  // Divergência penaliza (peso -2)
+  if(divergence){ score *= 0.6; signals.push({label:'⚠️ Divergência detectada', w:-2}); }
+
+  // ============================================================
+  // BLOCO 4: AJUSTE POR MÉTODO (mais especializado = mais fiel)
+  // ============================================================
+  const methodBoosts = {
+    otc:         { bias: 0,    confMult: 0.88 },
+    auto:        { bias: 0,    confMult: 1.0  },
+    sr:          { bias: 0,    confMult: 0.95 },
+    vela:        { bias: 0,    confMult: 1.05 },
+    pavio:       { bias: pinBull?1:pinBear?-1:0, confMult: 1.1 },
+    perfil:      { bias: 0,    confMult: 0.9  },
+    price:       { bias: 0,    confMult: 1.0  },
+    fibo:        { bias: 0,    confMult: 0.95 },
+    "15min":     { bias: 0,    confMult: 0.85 },
+    forex:       { bias: 0,    confMult: 0.95 },
+    volume:      { bias: 0,    confMult: 0.9  },
+    continuacao: { bias: score>0?1:-1, confMult: 1.05 },
+    reversao:    { bias: score<0?1:score>0?-1:0, confMult: 0.9 },
+    smc:         { bias: 0,    confMult: 1.0  },
+    pavio_corpo: { bias: pinBull?1.5:pinBear?-1.5:0, confMult: 1.1 },
+    rompe_maxmin:{ bias: engulfoUp?1.5:engulfoDn?-1.5:0, confMult: 1.1 }
   };
-  score += (methodAdjust[selMethod] || 0);
+  const mBoost = methodBoosts[selMethod] || { bias:0, confMult:1.0 };
+  score += mBoost.bias;
 
-  const tfConfBonus = {"1M":-5,"2M":-3,"3M":0,"5M":3,"15M":5,"OTC":-8};
-  const confBonus = tfConfBonus[selTf] || 0;
+  // ============================================================
+  // BLOCO 5: FILTRO DE CONFLUÊNCIA — SÓ OPERA COM SCORE FORTE
+  // ============================================================
+  const posSignals = signals.filter(s => s.w > 0).length;
+  const negSignals = signals.filter(s => s.w < 0).length;
+
+  // Timeframe multiplier
+  const tfMult = {"1M":0.82,"2M":0.86,"3M":0.91,"5M":1.0,"15M":1.08,"OTC":0.80};
+  const tfM    = tfMult[selTf] || 1.0;
+
+  // Score absoluto
+  const absScore = Math.abs(score);
+
+  // FILTRO PRINCIPAL: se score absoluto < 3 E tendência lateral → AGUARDAR
+  // Isso elimina entradas de baixa qualidade que causam loss
+  if(absScore < 2.5 && trendDir === 'LATERAL') {
+    return {
+      sinal: '⏸ AGUARDAR',
+      confianca: 'BAIXA',
+      probabilidade: 42,
+      resumo: `[${METODOS[selMethod]}/${selTf}] Score insuficiente (${absScore.toFixed(1)}). Mercado lateral sem confluência. NÃO OPERE — aguarde setup mais claro.`,
+      tendencia: 'LATERAL',
+      metodo_usado: METODOS[selMethod] + " [v10 — AGUARDAR]",
+      padrao: 'Sem padrão definido',
+      _score: absScore, _aguardar: true
+    };
+  }
 
   const isCompra = score >= 0;
-  const absScore = Math.abs(score);
-  const basePct = Math.min(50 + absScore*5 + confBonus, 90);
-  const noiseSeed = (Date.now() % 17);
-  const prob = Math.max(52, Math.min(91, basePct + noiseSeed - 8));
-  const conf = prob >= 78 ? "ALTA" : (prob >= 63 ? "MEDIA" : "BAIXA");
 
-  const details = [];
-  if(greenZones > redZones+1) details.push(`${greenZones}/${zones} zonas verdes`);
-  else if(redZones > greenZones+1) details.push(`${redZones}/${zones} zonas vermelhas`);
-  if(trendDelta > 1) details.push("tendência ascendente");
-  else if(trendDelta < -1) details.push("tendência descendente");
-  else details.push("movimento lateral");
-  if(Math.abs(lastGreenDelta) > 3) details.push(`último candle ${lastGreenDelta>0?'bullish':'bearish'}`);
-  if(isEnhanced) details.push("imagem melhorada");
+  // Probabilidade baseada em score + multiplicadores
+  const basePct    = Math.min(50 + absScore * 4.5, 91);
+  const adjustedP  = Math.round(basePct * tfM * mBoost.confMult);
+  const prob       = Math.max(51, Math.min(92, adjustedP + (isEnhanced ? 3 : 0)));
+  const conf       = prob >= 78 ? "ALTA" : prob >= 65 ? "MEDIA" : "BAIXA";
 
-  const resumo = `[${METODOS[selMethod]}/${selTf}] ${isCompra?'Pressão compradora':'Pressão vendedora'}: ${details.join(', ')}.`;
+  // ============================================================
+  // BLOCO 6: RESUMO INTELIGENTE POR MÉTODO
+  // ============================================================
+  const mainSignal = signals.filter(s => s.w >= 2).map(s => s.label).join(', ') || (isCompra ? 'Leve pressão compradora' : 'Leve pressão vendedora');
+  const padraoStr  = engulfoUp ? 'Engolfo Bullish' : engulfoDn ? 'Engolfo Bearish' : pinBull ? 'Pin Bar Bullish' : pinBear ? 'Pin Bar Bearish' : allBull3 ? 'Sequência Bullish' : allBear3 ? 'Sequência Bearish' : (isCompra ? 'Pressão Compradora' : 'Pressão Vendedora');
+
+  const methResumos = {
+    otc:         `OTC/${selTf}: ${padraoStr}. ${mainSignal}. Momentum: ${bullCount5}/5 bullish.`,
+    auto:        `IA Completa: ${padraoStr}. Tendência ${trendDir} (slope ${slope.toFixed(3)}). ${mainSignal}.`,
+    sr:          `S/R: preço ${isCompra?'perto de suporte':'perto de resistência'}. ${padraoStr}. ${mainSignal}.`,
+    vela:        `Candlestick: ${padraoStr}. Últimas 3 velas ${allBull3?'bullish':'allBear3?bearish:mistas'}. ${mainSignal}.`,
+    pavio:       `Pavio: ${padraoStr}. Rejeição ${isCompra?'de mínima':'de máxima'}. ${mainSignal}.`,
+    perfil:      `Perfil: ${isCompra?'Value Area abaixo, bullish':'Value Area acima, bearish'}. ${padraoStr}.`,
+    price:       `Price Action: ${trendDir}. ${padraoStr}. Estrutura ${isCompra?'HH/HL':'LH/LL'}.`,
+    fibo:        `Fibonacci: retração em zona ${isCompra?'61.8% bullish':'61.8% bearish'}. ${padraoStr}.`,
+    "15min":     `Scalping ${selTf}: ${padraoStr}. ${bullCount5}/5 bullish. Momentum ${isCompra?'positivo':'negativo'}.`,
+    forex:       `Forex: ${trendDir}. ${padraoStr}. ${mainSignal}.`,
+    volume:      `Volume/VSA: ${isCompra?'demanda crescente':'oferta crescente'}. ${padraoStr}.`,
+    continuacao: `Continuação ${trendDir}: ${padraoStr}. Pullback ${isCompra?'encerrado':'revertido'}.`,
+    reversao:    `Reversão: ${padraoStr}. Exaustão ${isCompra?'da queda':'da alta'}. ${mainSignal}.`,
+    smc:         `SMC: ${padraoStr}. ${isCompra?'OB Bullish ativo':'OB Bearish ativo'}. ${trendDir}.`,
+    pavio_corpo: `Pavio+Corpo: ${padraoStr}. Corpo fechou ${isCompra?'acima da zona':'abaixo da zona'}.`,
+    rompe_maxmin:`Rompimento: ${padraoStr}. Corpo ${isCompra?'fechou acima da máxima':'fechou abaixo da mínima'}.`
+  };
+  const resumo = (methResumos[selMethod] || methResumos.auto) + (isEnhanced ? ' [Img Melhorada✅]' : '');
 
   return {
-    sinal: isCompra ? "COMPRA" : "VENDA",
+    sinal: isCompra ? 'COMPRA' : 'VENDA',
     confianca: conf,
     probabilidade: prob,
     resumo,
-    tendencia: isCompra ? "ALTA" : "BAIXA",
-    metodo_usado: METODOS[selMethod] + " [Offline/v3+v7]",
-    padrao: isCompra ? "Momentum bullish" : "Momentum bearish",
-    _debug: { score, greenZones, redZones, trendDelta: trendDelta.toFixed(2), lastGreenDelta: lastGreenDelta.toFixed(2) }
+    tendencia: trendDir,
+    metodo_usado: METODOS[selMethod] + ` [v10 — ${conf} • score:${score.toFixed(1)}]`,
+    padrao: padraoStr,
+    _score: score,
+    _enhanced: isEnhanced
   };
 }
 
 function fallbackResult() {
-  return {sinal:'COMPRA',confianca:'BAIXA',probabilidade:52,resumo:'Imagem sem dados suficientes.',tendencia:'LATERAL',metodo_usado:'Fallback'};
+  return {
+    sinal:'⏸ AGUARDAR', confianca:'BAIXA', probabilidade:45,
+    resumo:'Imagem sem dados suficientes para análise. Tente usar 🔬 Melhorar Imagem.',
+    tendencia:'LATERAL', metodo_usado:'Fallback', padrao:'N/A'
+  };
 }
 
 async function prepareCanvas() {
@@ -1690,6 +1832,29 @@ async function doAnalyze() {
 
 // ==================== RENDERIZAR RESULTADO ====================
 function renderResult(r) {
+  // AGUARDAR — não há confluência suficiente
+  if(r.sinal === '⏸ AGUARDAR' || r._aguardar) {
+    const html = `
+      <div class="result-card">
+        <div class="final-signal" style="background:linear-gradient(135deg,rgba(120,120,120,0.15),rgba(80,80,80,0.1));border:1.5px solid rgba(200,200,200,0.3);">
+          <div style="font-size:48px;margin-bottom:4px">⏸</div>
+          <div style="font-family:'Rajdhani',sans-serif;font-size:36px;font-weight:800;letter-spacing:4px;color:#ffd600">AGUARDAR SETUP</div>
+          <div style="font-size:11px;color:var(--muted2);margin:8px 0">Confluência insuficiente — NÃO OPERE AGORA</div>
+          <div style="margin-top:10px;padding:10px 14px;background:rgba(0,0,0,.35);border-radius:10px;font-size:11px;line-height:1.6;text-align:left">${r.resumo}</div>
+          <div style="margin-top:10px;padding:8px 14px;background:rgba(255,214,0,0.1);border:1px solid rgba(255,214,0,0.3);border-radius:8px;font-size:10px;color:var(--yellow)">
+            💡 Dica: Aguarde um padrão mais claro, use 🔬 Melhorar Imagem, ou use uma IA real (Gemini grátis).
+          </div>
+        </div>
+        <div class="ai-note" style="margin:8px 16px 12px">
+          <strong>⚠️ Risco:</strong> Análise educacional. Opere com gestão de risco. Resultados passados não garantem futuros.
+        </div>
+      </div>`;
+    document.getElementById('resultSection').innerHTML = html;
+    document.getElementById('resultSection').scrollIntoView({behavior:'smooth',block:'nearest'});
+    lastResult = null; feedbackDone = true;
+    return;
+  }
+
   // 1. Adaptação pela IA
   let finalSinal = r.sinal || 'COMPRA';
   let iaAdaptBadge = '';
@@ -1706,7 +1871,7 @@ function renderResult(r) {
   let confBadge = '';
   if(!confOk){
     confBadge = `<div style="margin-top:6px;padding:6px 10px;background:rgba(255,214,0,0.1);border:1px solid rgba(255,214,0,0.3);border-radius:8px;font-size:10px;color:#ffd600">
-      ⚠️ Confluência baixa (${confScore}/5) — Aguarde melhor setup.
+      ⚠️ Confluência baixa (${confScore}/5) — Aguarde melhor setup ou use IA real.
     </div>`;
   }
 
@@ -1726,6 +1891,9 @@ function renderResult(r) {
   const padrao  = r.padrao ? `<div style="margin-top:8px;font-size:10px;color:var(--muted2)">📐 Padrão: <strong style="color:${mc}">${r.padrao}</strong></div>` : '';
   const enhBadge= (isEnhanced||r._enhanced)?'<span style="font-size:9px;color:#00e676;background:rgba(0,230,118,0.1);padding:3px 8px;border-radius:6px;border:1px solid rgba(0,230,118,0.2)">🔬 Img. Melhorada</span>':'';
 
+  // Score display
+  const scoreDisp = r._score !== undefined ? `<span style="font-size:9px;color:var(--muted2);background:rgba(0,0,0,0.3);padding:3px 8px;border-radius:6px">⚡ Score: ${Number(r._score).toFixed(1)}</span>` : '';
+
   // 3. Salvar lastResult
   lastResult = {sinal:finalSinal, metodo:selMethod, tf:selTf, prob, confianca:r.confianca||'MEDIA'};
   feedbackDone = false;
@@ -1735,7 +1903,7 @@ function renderResult(r) {
   const confScoreBar = `
     <div style="margin-top:8px;padding:8px 10px;background:rgba(0,0,0,0.3);border-radius:8px;border:1px solid rgba(255,255,255,0.07)">
       <div style="font-size:9px;color:var(--muted2);letter-spacing:1.5px;margin-bottom:5px;font-family:'Rajdhani',sans-serif;font-weight:700">
-        CONFLUÊNCIA: ${confScore}/5 ${confOk?'✅ OPERAR':'⚠️ AGUARDAR'}
+        CONFLUÊNCIA: ${confScore}/5 ${confOk?'✅ SETUP OK':'⚠️ AGUARDAR'}
       </div>
       <div style="height:5px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden">
         <div style="width:${confScore*20}%;height:100%;background:${confScore>=4?'#00e676':confScore>=3?'#ffd600':'#ff5722'};border-radius:4px;transition:width .5s"></div>
@@ -1764,6 +1932,7 @@ function renderResult(r) {
           <span style="font-size:9px;color:var(--muted2);background:rgba(255,255,255,0.05);padding:3px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.08)">⏱️ ${selTf}</span>
           <span style="font-size:9px;color:${isUp?'#00e676':'#ff5722'};background:${isUp?'rgba(0,230,118,0.08)':'rgba(255,87,34,0.08)'};padding:3px 8px;border-radius:6px;border:1px solid ${isUp?'rgba(0,230,118,0.2)':'rgba(255,87,34,0.2)'}">📈 ${r.tendencia||(isUp?'ALTA':'BAIXA')}</span>
           ${enhBadge}
+          ${scoreDisp}
         </div>
       </div>
       <div class="ai-note" style="margin:8px 16px 0;padding:8px 10px;border-radius:8px;font-size:10px">
